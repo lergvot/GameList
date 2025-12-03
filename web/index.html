@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Games List Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <div class="app">
+    <div class="app-header">
+      <div class="app-title-block">
+        <h1 class="app-title">Games List Manager</h1>
+        <span class="app-version">v1.10</span>
+      </div>
+      <p class="app-description">Удобный инструмент для локального управления статусами прохождения игр</p>
+    </div>
+
+    <header class="topbar">
+      <div class="left">
+        <button id="add-game-btn" class="btn primary">+ Добавить игру</button>
+
+        <div class="stats-row">
+          <button class="stat-item active-filter" data-filter="all">
+            <span class="stat-num" id="total-games">0</span>
+            <span class="stat-label">Всего</span>
+          </button>
+          <button class="stat-item" data-filter="playing">
+            <span class="stat-num" id="playing-games">0</span>
+            <span class="stat-label">Играю</span>
+          </button>
+          <button class="stat-item" data-filter="planned">
+            <span class="stat-num" id="planned-games">0</span>
+            <span class="stat-label">В планах</span>
+          </button>
+          <button class="stat-item" data-filter="completed">
+            <span class="stat-num" id="completed-games">0</span>
+            <span class="stat-label">Пройдено</span>
+          </button>
+          <button class="stat-item" data-filter="dropped">
+            <span class="stat-num" id="dropped-games">0</span>
+            <span class="stat-label">Дропнул</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="right">
+        <input id="search" type="search" placeholder="Поиск по названию...">
+      </div>
+    </header>
+
+    <main class="content">
+      <div id="games-list" class="games-list"></div>
+    </main>
+  </div>
+
+  <!-- Модальное окно формы -->
+  <div id="game-modal" class="modal" aria-hidden="true">
+    <div class="modal-panel form-panel">
+      <button class="modal-close panel-close" id="modal-close">✕</button>
+      <h2 id="modal-title">Добавить игру</h2>
+      
+      <form id="game-form" class="game-form" autocomplete="off">
+        <input type="hidden" id="game-id">
+        
+        <div class="form-content">
+          <div class="form-fields">
+            <div class="form-row">
+              <label for="title" class="label-full">Название <span class="req">*</span></label>
+              <input id="title" type="text" required placeholder="Введите название игры">
+            </div>
+
+            <div class="form-row three-cols">
+              <div class="col">
+                <label for="version" class="small-italic">Версия</label>
+                <input id="version" type="text" placeholder="например, GOTY или 1.2.3">
+              </div>
+
+              <div class="col">
+                <label for="rating" class="small-italic">Оценка</label>
+                <input id="rating" type="number" min="0" max="10" step="0.1" value="0">
+              </div>
+
+              <div class="col">
+                <label for="status" class="small-italic">Статус</label>
+                <select id="status" class="status-select">
+                  <option value="playing">Играю</option>
+                  <option value="planned">В планах</option>
+                  <option value="completed">Прошёл</option>
+                  <option value="dropped">Дропнул</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="game-link" class="label-full">Ссылка на игру</label>
+              <input id="game-link" type="text" placeholder="https://...">
+            </div>
+
+            <div class="form-row">
+              <label for="review" class="label-full">Отзыв</label>
+              <textarea id="review" rows="5" placeholder="Коротко о впечатлениях"></textarea>
+            </div>
+          </div>
+
+          <div class="upload-section">
+            <div class="upload-area" id="upload-area">
+              <div id="screenshot-preview" class="screenshot-preview empty"></div>
+              <input id="screenshot" type="file" accept="image/*" style="display: none">
+            </div>
+            <button id="remove-screenshot" type="button" class="btn small neutral hidden">Удалить изображение</button>
+            
+            <div class="form-actions">
+              <button id="cancel-btn" type="button" class="btn">Отмена</button>
+              <button id="save-btn" type="submit" class="btn primary">Сохранить</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модальное окно просмотра -->
+  <div id="view-modal" class="modal" aria-hidden="true">
+    <div class="modal-panel view-panel">
+      <button class="modal-close panel-close" id="view-close">✕</button>
+      
+      <div class="view-body">
+        <div class="view-left">
+          <div class="view-rating" id="view-rating">★ 0.0</div>
+          <div class="view-image-wrap">
+            <div class="view-image" id="view-image"></div>
+          </div>
+        </div>
+
+        <div class="view-right">
+          <div class="view-header-row" id="view-header-row"></div>
+          
+          <div class="view-meta-row">
+            <div class="view-link-wrapper" id="view-link-row"></div>
+            <div class="view-version-status">
+              <div class="view-meta" id="view-version">Версия: —</div>
+              <div class="view-status-wrapper">
+                <div class="card-status" id="view-status">—</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="view-review-wrapper">
+            <div class="view-review" id="view-review"></div>
+          </div>
+          
+          <div class="view-actions">
+            <button id="view-edit" class="btn">Редактировать</button>
+            <button id="view-delete" class="btn neutral">Удалить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно подтверждения -->
+  <div id="confirm-modal" class="modal" aria-hidden="true">
+    <div class="modal-panel small-panel">
+      <h3>Подтвердите удаление</h3>
+      <p>Удалить карточку игры?</p>
+      <div class="form-actions">
+        <button id="confirm-cancel" class="btn">Отмена</button>
+        <button id="confirm-delete" class="btn neutral dangerish">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/eel.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
