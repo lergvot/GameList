@@ -97,21 +97,7 @@
           
           <!-- Кнопки действий во второй строке -->
           <div class="card-bottom-actions">
-            ${
-              escapedGame.gameLink
-                ? `
-              <div class="card-link-btn">
-                <button class="btn small" 
-                  onclick="event.stopPropagation(); copyToClipboard('${escapedGame.gameLink.replace(
-                    /'/g,
-                    "\\'"
-                  )}')">
-                  Ссылка
-                </button>
-              </div>
-            `
-                : ""
-            }
+            
             
             <div class="card-time-stamp">
               <span title="${escapedGame.createdFull}">
@@ -123,6 +109,21 @@
             </div>
             
             <div class="card-actions">
+            ${
+              escapedGame.gameLink
+                ? `
+              
+                <button class="btn small" title="Копировать ссылку" 
+                  onclick="event.stopPropagation(); copyToClipboard('${escapedGame.gameLink.replace(
+                    /'/g,
+                    "\\'"
+                  )}')">
+                  🡵
+                </button>
+              
+            `
+                : ""
+            }
               <button class="btn small" title="Редактировать" 
                 onclick="event.stopPropagation(); openForm(${gameJson})">
                 ✎

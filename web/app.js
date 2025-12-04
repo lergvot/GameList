@@ -181,9 +181,13 @@ function openForm(game = null) {
     : "";
   removeScreenshotBtn.classList.toggle("hidden", !game?.screenshot_data);
 
+  // Обновляем заголовок и кнопку
   document.getElementById("modal-title").textContent = game
     ? "Редактировать игру"
     : "Добавить игру";
+  document.getElementById("save-btn").textContent = game
+    ? "Обновить"
+    : "Добавить";
   modal.setAttribute("aria-hidden", "false");
   updateBodyScroll();
 }
