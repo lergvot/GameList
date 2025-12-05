@@ -9,6 +9,8 @@ let currentSearch = "";
 let selectedToDelete = null;
 let unsavedScreenshotData = null;
 let editingGame = null;
+let isSubmitting = false;
+let duplicatePopupTimeout = null;
 
 // ============================================
 // DOM ЭЛЕМЕНТЫ (CACHED ELEMENTS)
@@ -21,6 +23,8 @@ const screenshotPreview = document.getElementById("screenshot-preview");
 const removeScreenshotBtn = document.getElementById("remove-screenshot");
 const searchInput = document.getElementById("search");
 const statusSelect = document.getElementById("status");
+const titleInput = document.getElementById("title");
+const duplicatePopup = document.getElementById("duplicate-popup");
 
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ (INITIALIZATION)
@@ -31,7 +35,204 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ============================================
-// ОБРАБОТЧИКИ СОБЫТИЙ (EVENT HANDLERS)
+// ПОИСК ПОХОЖИХ ИГР (DUPLICATE GAME SEARCH) - ОБНОВЛЁННЫЙ
+// ============================================
+function findSimilarGames(gameName, allGames, currentGameId = null) {
+  const searchTerm = gameName.toLowerCase().trim();
+
+  // Если строка поиска пустая или слишком короткая - возвращаем пустой массив
+  if (searchTerm.length < 2) {
+    return [];
+  }
+
+  return allGames
+    .filter((game) => {
+      // Исключаем текущую редактируемую игру
+      if (currentGameId && game.id == currentGameId) {
+        return false;
+      }
+
+      const gameNameLower = game.title
+        ? game.title.toLowerCase()
+        : game.name
+        ? game.name.toLowerCase()
+        : "";
+
+      // 1. Точное совпадение (самый высокий приоритет)
+      if (gameNameLower === searchTerm) {
+        return true;
+      }
+
+      // 2. Ищем игры, которые начинаются с поискового запроса
+      if (gameNameLower.startsWith(searchTerm)) {
+        return true;
+      }
+
+      // 3. Разбиваем на слова и ищем точные совпадения слов
+      const searchWords = searchTerm.split(/\s+/).filter((w) => w.length > 1);
+      const gameWords = gameNameLower.split(/\s+/);
+
+      // Проверяем, содержатся ли все слова поиска в названии игры
+      if (searchWords.length > 0) {
+        const allSearchWordsFound = searchWords.every((searchWord) =>
+          gameWords.some((gameWord) => gameWord === searchWord)
+        );
+
+        if (allSearchWordsFound) {
+          return true;
+        }
+      }
+
+      // 4. Проверяем на частичное совпадение (только если запрос длинный)
+      if (searchTerm.length > 3) {
+        // Ищем игры, которые содержат поисковый запрос целиком
+        if (gameNameLower.includes(searchTerm)) {
+          return true;
+        }
+
+        // Ищем игры, где каждое слово поиска содержится в названии
+        if (searchWords.length > 0) {
+          const allWordsPartiallyFound = searchWords.every((searchWord) =>
+            gameNameLower.includes(searchWord)
+          );
+
+          return allWordsPartiallyFound;
+        }
+      }
+
+      return false;
+    })
+    .sort((a, b) => {
+      // Сортируем результаты по релевантности
+      const aName = a.title
+        ? a.title.toLowerCase()
+        : a.name
+        ? a.name.toLowerCase()
+        : "";
+      const bName = b.title
+        ? b.title.toLowerCase()
+        : b.name
+        ? b.name.toLowerCase()
+        : "";
+
+      // Точное совпадение имеет высший приоритет
+      if (aName === searchTerm) return -1;
+      if (bName === searchTerm) return 1;
+
+      // Начинающиеся с запроса - следующий приоритет
+      if (aName.startsWith(searchTerm)) return -1;
+      if (bName.startsWith(searchTerm)) return 1;
+
+      // Затем по алфавиту
+      return aName.localeCompare(bName);
+    });
+}
+
+// ============================================
+// ПОКАЗ/СКРЫТИЕ ВСПЛЫВАЮЩЕГО ОКНА С ДУБЛЯМИ - ОБНОВЛЁННЫЙ
+// ============================================
+// Вспомогательная функция для получения русского текста статуса
+function getStatusTextRu(status) {
+  const statusMap = {
+    playing: "Играю",
+    planned: "В планах",
+    completed: "Прошёл",
+    dropped: "Дропнул",
+  };
+  return statusMap[status] || "Неизвестно";
+}
+
+function showDuplicatePopup(searchText, currentGameId = null) {
+  // Очищаем предыдущий таймаут
+  clearTimeout(duplicatePopupTimeout);
+
+  // Если поле пустое или слишком короткое - скрываем попап
+  if (!searchText || searchText.trim().length < 2) {
+    hideDuplicatePopup();
+    return;
+  }
+
+  // Ищем похожие игры
+  const similarGames = findSimilarGames(searchText, allGames, currentGameId);
+
+  // Если нет похожих игр - скрываем попап
+  if (!similarGames || similarGames.length === 0) {
+    hideDuplicatePopup();
+    return;
+  }
+
+  // Обновляем содержимое попапа
+  duplicatePopup.innerHTML = "";
+
+  const list = document.createElement("ul");
+  list.className = "duplicate-list";
+
+  similarGames.forEach((game) => {
+    const listItem = document.createElement("li");
+    listItem.className = "duplicate-list-item";
+
+    // Используем уже существующий шаблон для статуса
+    const statusClass = statusClassFor(game.status);
+    const statusText = getStatusTextRu(game.status).toUpperCase();
+
+    listItem.innerHTML = `
+      <span class="duplicate-game-name">${
+        game.title || game.name || "Без названия"
+      }</span>
+      <span class="card-status-duplicate ${statusClass}">${statusText}</span>
+    `;
+
+    list.appendChild(listItem);
+  });
+
+  duplicatePopup.appendChild(list);
+
+  // Показываем попап
+  duplicatePopup.classList.add("active");
+
+  // Убираем все инлайн-стили, чтобы работали CSS стили
+  duplicatePopup.style = "";
+
+  // Устанавливаем таймаут для автоматического скрытия (если нужно)
+  duplicatePopupTimeout = setTimeout(() => {
+    if (
+      !duplicatePopup.matches(":hover") &&
+      document.activeElement !== titleInput
+    ) {
+      hideDuplicatePopup();
+    }
+  }, 5000);
+}
+
+function hideDuplicatePopup() {
+  if (duplicatePopup) {
+    duplicatePopup.classList.remove("active");
+    duplicatePopup.innerHTML = "";
+    // Убираем инлайн-стили при скрытии
+    duplicatePopup.style = "";
+  }
+  clearTimeout(duplicatePopupTimeout);
+}
+
+function lockForm(lock = true) {
+  const overlay = document.getElementById("form-overlay");
+  const formInputs = document.querySelectorAll(
+    "#game-form input, #game-form textarea, #game-form select, #game-form button"
+  );
+
+  if (lock) {
+    isSubmitting = true;
+    if (overlay) overlay.style.display = "flex";
+    formInputs.forEach((input) => (input.disabled = true));
+  } else {
+    isSubmitting = false;
+    if (overlay) overlay.style.display = "none";
+    formInputs.forEach((input) => (input.disabled = false));
+  }
+}
+
+// ============================================
+// ОБРАБОТЧИКИ СОБЫТИЙ (EVENT HANDLERS) - ОБНОВЛЁННЫЙ
 // ============================================
 function attachHandlers() {
   document
@@ -72,6 +273,58 @@ function attachHandlers() {
       updateStatsFilterUI();
       filterAndDisplay();
     });
+  });
+
+  // Обработчики для поля ввода названия - ОБНОВЛЁННЫЕ
+  if (titleInput) {
+    let inputTimeout;
+
+    // Поиск при вводе (с задержкой)
+    titleInput.addEventListener("input", (e) => {
+      clearTimeout(inputTimeout);
+      inputTimeout = setTimeout(() => {
+        const gameId = document.getElementById("game-id").value;
+        showDuplicatePopup(e.target.value, gameId || null);
+      }, 300);
+    });
+
+    // Показ при фокусе
+    titleInput.addEventListener("focus", (e) => {
+      const gameId = document.getElementById("game-id").value;
+      showDuplicatePopup(e.target.value, gameId || null);
+    });
+
+    // Скрытие при потере фокуса
+    titleInput.addEventListener("blur", (e) => {
+      setTimeout(() => {
+        if (!duplicatePopup.matches(":hover")) {
+          hideDuplicatePopup();
+        }
+      }, 200);
+    });
+
+    // Скрытие при нажатии Esc
+    titleInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        hideDuplicatePopup();
+      }
+    });
+  }
+
+  // Скрытие попапа при клике вне его
+  document.addEventListener("click", (e) => {
+    if (duplicatePopup && duplicatePopup.classList.contains("active")) {
+      if (!duplicatePopup.contains(e.target) && e.target !== titleInput) {
+        hideDuplicatePopup();
+      }
+    }
+  });
+
+  // Скрытие попапа при скролле
+  window.addEventListener("scroll", () => {
+    if (duplicatePopup && duplicatePopup.classList.contains("active")) {
+      hideDuplicatePopup();
+    }
   });
 }
 
@@ -161,9 +414,17 @@ function statusClassFor(status) {
 function openForm(game = null) {
   editingGame = game;
 
+  // Убедимся, что форма разблокирована
+  lockForm(false);
+
+  // Скрываем попап при открытии формы
+  hideDuplicatePopup();
+
   // Заполняем форму
   document.getElementById("game-id").value = game?.id || "";
-  document.getElementById("title").value = game?.title || "";
+  const titleInput = document.getElementById("title");
+  titleInput.value = game?.title || "";
+
   document.getElementById("version").value = game?.version || "";
   document.getElementById("rating").value = game?.rating || 0;
   document.getElementById("status").value = game?.status || "planned";
@@ -188,6 +449,7 @@ function openForm(game = null) {
   document.getElementById("save-btn").textContent = game
     ? "Обновить"
     : "Добавить";
+
   modal.setAttribute("aria-hidden", "false");
   updateBodyScroll();
 }
@@ -196,6 +458,13 @@ function closeForm() {
   modal.setAttribute("aria-hidden", "true");
   editingGame = null;
   unsavedScreenshotData = null;
+
+  // Сбрасываем состояние формы
+  setTimeout(() => {
+    lockForm(false);
+    hideDuplicatePopup();
+  }, 300);
+
   updateBodyScroll();
 }
 
@@ -224,6 +493,12 @@ function onRemoveScreenshot() {
 async function onSubmit(e) {
   e.preventDefault();
 
+  // Защита от повторной отправки
+  if (isSubmitting) {
+    console.log("Форма уже отправляется...");
+    return;
+  }
+
   const payload = {
     title: document.getElementById("title").value.trim(),
     version: document.getElementById("version").value.trim(),
@@ -239,6 +514,9 @@ async function onSubmit(e) {
   }
 
   try {
+    // Блокируем форму с overlay
+    lockForm(true);
+
     const gameId = document.getElementById("game-id").value;
     const screenshotArg =
       unsavedScreenshotData === null ? null : unsavedScreenshotData;
@@ -259,6 +537,8 @@ async function onSubmit(e) {
   } catch (err) {
     console.error(err);
     alert("Ошибка сохранения");
+    // При ошибке разблокируем форму, но не закрываем
+    lockForm(false);
   }
 }
 

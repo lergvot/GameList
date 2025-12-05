@@ -60,6 +60,14 @@
     <!-- Модальное окно формы -->
     <div id="game-modal" class="modal" aria-hidden="true">
       <div class="modal-panel form-panel">
+        <!-- Overlay для блокировки формы -->
+        <div id="form-overlay" class="form-overlay" style="display: none">
+          <div class="overlay-content">
+            <div class="spinner"></div>
+            <p>Сохранение...</p>
+          </div>
+        </div>
+
         <button class="modal-close panel-close" id="modal-close">✕</button>
         <h2 id="modal-title">Добавить игру</h2>
 
@@ -78,6 +86,8 @@
                   required
                   placeholder="Введите название игры"
                 />
+                <!-- Контейнер для всплывающего уведомления о дублях -->
+                <div id="duplicate-popup" class="duplicate-popup"></div>
               </div>
 
               <div class="form-row three-cols">
