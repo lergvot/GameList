@@ -32,7 +32,23 @@ const duplicatePopup = document.getElementById("duplicate-popup");
 document.addEventListener("DOMContentLoaded", async () => {
   attachHandlers();
   await loadAndRender();
+  updateAppVersion();
 });
+
+// Получение и отображение версии приложения
+async function updateAppVersion() {
+  try {
+    // Получаем версию из Python через Eel
+    const version = await eel.get_version()();
+    const versionElement = document.querySelector(".app-version");
+
+    if (versionElement) {
+      versionElement.textContent = `v${version}`;
+    }
+  } catch (error) {
+    console.log("Не удалось получить версию приложения:", error);
+  }
+}
 
 // ============================================
 // ПОИСК ПОХОЖИХ ИГР (DUPLICATE GAME SEARCH) - ОБНОВЛЁННЫЙ

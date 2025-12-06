@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Для changelog
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Verify version
+        run: |
+          python -c "
+          import re
+          with open('main.py', 'r', encoding='utf-8') as f:
+              content = f.read()
+          match = re.search(r'APP_VERSION\\s*=\\s*[\"\\']([^\"\\']+)[\"\\']', content)
+          if match:
+              py_version = match.group(1)
+              tag_version = '${{ github.ref_name }}'.lstrip('v')
+              if py_version != tag_version:
+                  print(f'❌ Версия в main.py ({py_version}) не совпадает с тегом ({tag_version})')
+                  exit(1)
+              print(f'✅ Версии совпадают: {py_version}')
+          else:
+              print('❌ Не найдена переменная APP_VERSION в main.py')
+              exit(1)
+          "
+
+      - name: Build release
+        run: python build.py --release
+
+      - name: Generate changelog
+        run: |
+          # Получаем предыдущий тег
+          git fetch --tags --force
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$previous_tag" ]; then
+            echo "### 🎮 Games List Manager ${{ github.ref_name }}" > changelog.md
+            echo "Первый релиз!" >> changelog.md
+            echo "" >> changelog.md
+            echo "#### Все коммиты:" >> changelog.md
+            git log --pretty=format:"- %s" --no-merges >> changelog.md
+          else
+            echo "### 🎮 Games List Manager ${{ github.ref_name }}" > changelog.md
+            echo "" >> changelog.md
+            echo "#### Изменения с $previous_tag:" >> changelog.md
+            git log --pretty=format:"- %s" --no-merges $previous_tag..HEAD >> changelog.md
+          fi
+
+          echo "" >> changelog.md
+          echo "---" >> changelog.md
+          echo "*Релиз создан автоматически*" >> changelog.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Games List Manager ${{ github.ref_name }}
+          body_path: changelog.md
+          files: dist/*.zip # ТОЛЬКО наш ZIP с приложением
+          draft: false
+          prerelease: false
