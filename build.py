@@ -1,13 +1,14 @@
 import os
 import re
 import shutil
-import zipfile
 import sys
+import zipfile
+
 import PyInstaller.__main__
 
 
 def get_version():
-    """Получаем версию из main.py"""
+    """Get version from main.py"""
     with open("main.py", "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -18,8 +19,8 @@ def get_version():
 
 
 def build_local():
-    """Локальная сборка (быстрая, без версии в имени)"""
-    print("🔨 Локальная сборка...")
+    """Local build (fast, without version in name)"""
+    print("[BUILD] Local build...")
 
     PyInstaller.__main__.run(
         [
@@ -36,7 +37,7 @@ def build_local():
         ]
     )
 
-    # Очистка
+    # Cleanup
     if os.path.exists("build"):
         shutil.rmtree("build")
 
@@ -44,26 +45,26 @@ def build_local():
     if os.path.exists(spec_file):
         os.remove(spec_file)
 
-    print("[OK] Локальная сборка завершена!")
+    print("[OK] Local build completed!")
     print("[DIR] EXE: Games List Manager/Games List Manager.exe")
 
 
 def build_release():
-    """Релизная сборка - только приложение с README"""
+    """Release build - only app with README"""
     version = get_version()
-    print(f"[RELEASE] Релизная сборка v{version}...")
+    print(f"[RELEASE] Building release v{version}...")
 
-    # Безопасное имя (без пробелов)
+    # Safe name (without spaces)
     safe_name = f"Games_List_Manager_v{version}"
-    # Человеческое имя
+    # Human readable name
     human_name = f"Games List Manager"
 
-    # Создаём папки
+    # Create folders
     if os.path.exists("dist"):
         shutil.rmtree("dist")
     os.makedirs(f"dist/{human_name}", exist_ok=True)
 
-    # Сборка
+    # Build
     PyInstaller.__main__.run(
         [
             "main.py",
@@ -79,23 +80,23 @@ def build_release():
         ]
     )
 
-    # 1. Копируем существующий README.md проекта (если есть)
+    # 1. Copy existing README.md from project (if exists)
     readme_src = "README.md"
     if os.path.exists(readme_src):
         shutil.copy2(readme_src, f"dist/{human_name}/README.md")
-        print(f"Добавлен README.md из проекта")
+        print(f"[INFO] Added README.md from project")
     else:
-        print("README.md не найден, пропускаем")
+        print("[WARN] README.md not found, skipping")
 
-    # 2. Добавляем LICENSE если есть
+    # 2. Add LICENSE if exists
     license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md"]
     for license_file in license_files:
         if os.path.exists(license_file):
             shutil.copy2(license_file, f"dist/{human_name}/{license_file}")
-            print(f"Добавлен {license_file}")
+            print(f"[INFO] Added {license_file}")
             break
 
-    # 3. ТОЛЬКО архив с приложением (без исходников)
+    # 3. ONLY app archive (no sources)
     zip_path = f"dist/{safe_name}.zip"
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(f"dist/{human_name}"):
@@ -104,16 +105,16 @@ def build_release():
                 arcname = os.path.join(human_name, file)
                 zipf.write(file_path, arcname)
 
-    # Очистка временных файлов
+    # Cleanup temp files
     shutil.rmtree("build", ignore_errors=True)
 
     spec_file = f"{human_name}.spec"
     if os.path.exists(spec_file):
         os.remove(spec_file)
 
-    print(f"[OK] Релиз v{version} собран!")
-    print(f"[ZIP] App ZIP: {zip_path}")
-    print("[INFO] Source code архивы создаст GitHub автоматически")
+    print(f"[OK] Release v{version} built!")
+    print(f"[ZIP] App archive: {zip_path}")
+    print("[INFO] Source code archives will be created by GitHub automatically")
 
 
 if __name__ == "__main__":
