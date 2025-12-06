@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 eel.init("web")
 
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.10.0"
 DATA_DIR = Path("data")
 DB_FILE = DATA_DIR / "games.db"
 SCREENSHOTS_DIR = DATA_DIR / "screenshots"
