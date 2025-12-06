@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 eel.init("web")
 
+APP_VERSION = "1.2.0"
 DATA_DIR = Path("data")
 DB_FILE = DATA_DIR / "games.db"
 SCREENSHOTS_DIR = DATA_DIR / "screenshots"
@@ -165,6 +166,11 @@ def get_db_connection():
     conn.create_function("file_exists", 1, sqlite_file_exists)
     conn.create_function("base64_screenshot", 1, sqlite_base64_screenshot)
     return conn
+
+
+@eel.expose
+def get_version():
+    return APP_VERSION
 
 
 @eel.expose
