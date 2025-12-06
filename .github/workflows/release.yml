@@ -52,17 +52,22 @@ jobs:
           git fetch --tags --force
           previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
 
+          # Получаем URL репозитория для ссылок
+          REPO_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+
           if [ -z "$previous_tag" ]; then
             echo "### 🎮 Games List Manager ${{ github.ref_name }}" > changelog.md
             echo "Первый релиз!" >> changelog.md
             echo "" >> changelog.md
             echo "#### Все коммиты:" >> changelog.md
-            git log --pretty=format:"- %s" --no-merges >> changelog.md
+            # Выводим коммиты с хэшами и ссылками
+            git log --pretty=format:"- [%h]($REPO_URL/commit/%H) %s" --no-merges >> changelog.md
           else
             echo "### 🎮 Games List Manager ${{ github.ref_name }}" > changelog.md
             echo "" >> changelog.md
             echo "#### Изменения с $previous_tag:" >> changelog.md
-            git log --pretty=format:"- %s" --no-merges $previous_tag..HEAD >> changelog.md
+            # Выводим коммиты с хэшами и ссылками
+            git log --pretty=format:"- [%h]($REPO_URL/commit/%H) %s" --no-merges $previous_tag..HEAD >> changelog.md
           fi
 
           echo "" >> changelog.md
