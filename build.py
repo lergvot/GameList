@@ -44,14 +44,14 @@ def build_local():
     if os.path.exists(spec_file):
         os.remove(spec_file)
 
-    print("✅ Локальная сборка завершена!")
-    print("📁 EXE: Games List Manager/Games List Manager.exe")
+    print("[OK] Локальная сборка завершена!")
+    print("[DIR] EXE: Games List Manager/Games List Manager.exe")
 
 
 def build_release():
     """Релизная сборка - только приложение с README"""
     version = get_version()
-    print(f"🚀 Релизная сборка v{version}...")
+    print(f"[RELEASE] Релизная сборка v{version}...")
 
     # Безопасное имя (без пробелов)
     safe_name = f"Games_List_Manager_v{version}"
@@ -83,16 +83,16 @@ def build_release():
     readme_src = "README.md"
     if os.path.exists(readme_src):
         shutil.copy2(readme_src, f"dist/{human_name}/README.md")
-        print(f"📄 Добавлен README.md из проекта")
+        print(f"Добавлен README.md из проекта")
     else:
-        print("⚠️ README.md не найден, пропускаем")
+        print("README.md не найден, пропускаем")
 
     # 2. Добавляем LICENSE если есть
     license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md"]
     for license_file in license_files:
         if os.path.exists(license_file):
             shutil.copy2(license_file, f"dist/{human_name}/{license_file}")
-            print(f"📄 Добавлен {license_file}")
+            print(f"Добавлен {license_file}")
             break
 
     # 3. ТОЛЬКО архив с приложением (без исходников)
@@ -111,9 +111,9 @@ def build_release():
     if os.path.exists(spec_file):
         os.remove(spec_file)
 
-    print(f"✅ Релиз v{version} собран!")
-    print(f"📦 App ZIP: {zip_path}")
-    print("📦 Source code архивы создаст GitHub автоматически")
+    print(f"[OK] Релиз v{version} собран!")
+    print(f"[ZIP] App ZIP: {zip_path}")
+    print("[INFO] Source code архивы создаст GitHub автоматически")
 
 
 if __name__ == "__main__":
