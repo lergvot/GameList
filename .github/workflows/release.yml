@@ -23,23 +23,21 @@ jobs:
         run: pip install pyinstaller
 
       - name: Verify version
+        shell: bash
         run: |
-          python -c "
-          import re
-          with open('main.py', 'r', encoding='utf-8') as f:
-              content = f.read()
-          match = re.search(r'APP_VERSION\\s*=\\s*[\"\\']([^\"\\']+)[\"\\']', content)
-          if match:
-              py_version = match.group(1)
-              tag_version = '${{ github.ref_name }}'.lstrip('v')
-              if py_version != tag_version:
-                  print(f'❌ Версия в main.py ({py_version}) не совпадает с тегом ({tag_version})')
-                  exit(1)
-              print(f'✅ Версии совпадают: {py_version}')
-          else:
-              print('❌ Не найдена переменная APP_VERSION в main.py')
-              exit(1)
-          "
+          # Извлекаем версию из main.py
+          PY_VERSION=$(grep 'APP_VERSION' main.py | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+
+          echo "Версия в main.py: $PY_VERSION"
+          echo "Версия тега: $TAG_VERSION"
+
+          if [ "$PY_VERSION" != "$TAG_VERSION" ]; then
+            echo "❌ Версии не совпадают!"
+            exit 1
+          fi
+
+          echo "✅ Версии совпадают"
 
       - name: Build release
         run: python build.py --release
