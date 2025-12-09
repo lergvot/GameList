@@ -1,120 +1,120 @@
+# build.py (только изменения)
 import os
-import re
 import shutil
 import sys
 import zipfile
 
 import PyInstaller.__main__
 
+from config import APP_NAME, APP_VERSION, BUILD_CONFIG
+
 
 def get_version():
-    """Get version from main.py"""
-    with open("main.py", "r", encoding="utf-8") as f:
-        content = f.read()
-
-    match = re.search(r'APP_VERSION\s*=\s*["\']([^"\']+)["\']', content)
-    if match:
-        return match.group(1)
-    return "dev"
+    """Получаем версию из config.py"""
+    return APP_VERSION
 
 
 def build_local():
-    """Local build (fast, without version in name)"""
-    print("[BUILD] Local build...")
+    """Локальная сборка"""
+    print(f"[BUILD] Локальная сборка {APP_NAME} v{APP_VERSION}...")
 
-    PyInstaller.__main__.run(
-        [
-            "main.py",
-            "--onefile",
-            "--windowed",
-            "--name=Games List Manager",
-            "--distpath=Games List Manager",
-            "--add-data=web;web",
-            "--hidden-import=sqlite3",
-            "--clean",
-            "--noconfirm",
-            "--icon=web/favicon.ico",
-        ]
-    )
+    args = [
+        "main.py",
+        "--onefile",
+        "--windowed",
+        f"--name={BUILD_CONFIG['exe_name']}",
+        f"--distpath={BUILD_CONFIG['exe_name']}",
+        "--add-data=web;web",
+        "--hidden-import=sqlite3",
+        "--clean",
+        "--noconfirm",
+    ]
 
-    # Cleanup
-    if os.path.exists("build"):
-        shutil.rmtree("build")
+    # Добавляем иконку если указана
+    if BUILD_CONFIG.get("icon_path") and os.path.exists(BUILD_CONFIG["icon_path"]):
+        args.append(f"--icon={BUILD_CONFIG['icon_path']}")
 
-    spec_file = "Games List Manager.spec"
-    if os.path.exists(spec_file):
-        os.remove(spec_file)
+    PyInstaller.__main__.run(args)
 
-    print("[OK] Local build completed!")
-    print("[DIR] EXE: Games List Manager/Games List Manager.exe")
+    # Очистка
+    cleanup()
+    print(f"[OK] Локальная сборка завершена!")
+    print(f"[DIR] EXE: {BUILD_CONFIG['exe_name']}/{BUILD_CONFIG['exe_name']}.exe")
 
 
 def build_release():
-    """Release build - only app with README"""
-    version = get_version()
-    print(f"[RELEASE] Building release v{version}...")
+    """Релизная сборка"""
+    print(f"[RELEASE] Сборка релиза v{APP_VERSION}...")
 
-    # Safe name (without spaces)
-    safe_name = f"Games_List_Manager_v{version}"
-    # Human readable name
-    human_name = f"Games List Manager"
+    # Формируем имена из конфига
+    safe_name = f"{BUILD_CONFIG['release_prefix']}_v{APP_VERSION}"
+    human_name = BUILD_CONFIG["exe_name"]
 
-    # Create folders
+    # Создаем директории
     if os.path.exists("dist"):
         shutil.rmtree("dist")
     os.makedirs(f"dist/{human_name}", exist_ok=True)
 
-    # Build
-    PyInstaller.__main__.run(
-        [
-            "main.py",
-            "--onefile",
-            "--windowed",
-            f"--name={human_name}",
-            f"--distpath=dist/{human_name}",
-            "--add-data=web;web",
-            "--hidden-import=sqlite3",
-            "--clean",
-            "--noconfirm",
-            "--icon=web/favicon.ico",
-        ]
-    )
+    # Аргументы для сборки
+    args = [
+        "main.py",
+        "--onefile",
+        "--windowed",
+        f"--name={human_name}",
+        f"--distpath=dist/{human_name}",
+        "--add-data=web;web",
+        "--hidden-import=sqlite3",
+        "--clean",
+        "--noconfirm",
+    ]
 
-    # 1. Copy existing README.md from project (if exists)
-    readme_src = "README.md"
-    if os.path.exists(readme_src):
-        shutil.copy2(readme_src, f"dist/{human_name}/README.md")
-        print(f"[INFO] Added README.md from project")
-    else:
-        print("[WARN] README.md not found, skipping")
+    if BUILD_CONFIG.get("icon_path") and os.path.exists(BUILD_CONFIG["icon_path"]):
+        args.append(f"--icon={BUILD_CONFIG['icon_path']}")
 
-    # 2. Add LICENSE if exists
-    license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md"]
-    for license_file in license_files:
-        if os.path.exists(license_file):
-            shutil.copy2(license_file, f"dist/{human_name}/{license_file}")
-            print(f"[INFO] Added {license_file}")
-            break
+    PyInstaller.__main__.run(args)
 
-    # 3. ONLY app archive (no sources)
+    # Копируем дополнительные файлы
+    copy_additional_files(f"dist/{human_name}")
+
+    # Создаем архив
     zip_path = f"dist/{safe_name}.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for root, dirs, files in os.walk(f"dist/{human_name}"):
-            for file in files:
-                file_path = os.path.join(root, file)
-                arcname = os.path.join(human_name, file)
-                zipf.write(file_path, arcname)
+    create_archive(f"dist/{human_name}", zip_path, human_name)
 
-    # Cleanup temp files
-    shutil.rmtree("build", ignore_errors=True)
+    # Очистка
+    cleanup()
 
-    spec_file = f"{human_name}.spec"
+    print(f"[OK] Релиз v{APP_VERSION} собран!")
+    print(f"[ARCHIVE] {zip_path}")
+
+
+def cleanup():
+    """Очистка временных файлов"""
+    if os.path.exists("build"):
+        shutil.rmtree("build")
+
+    spec_file = f"{BUILD_CONFIG['exe_name']}.spec"
     if os.path.exists(spec_file):
         os.remove(spec_file)
 
-    print(f"[OK] Release v{version} built!")
-    print(f"[ZIP] App archive: {zip_path}")
-    print("[INFO] Source code archives will be created by GitHub automatically")
+
+def copy_additional_files(dest_dir):
+    """Копирует дополнительные файлы в дистрибутив"""
+    files_to_copy = ["README.md", "LICENSE", "LICENSE.txt", "LICENSE.md"]
+
+    for file in files_to_copy:
+        if os.path.exists(file):
+            shutil.copy2(file, f"{dest_dir}/{file}")
+            print(f"[INFO] Добавлен: {file}")
+
+
+def create_archive(source_dir, output_path, base_dir):
+    """Создает архив"""
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(source_dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.join(base_dir, file)
+                zipf.write(file_path, arcname)
 
 
 if __name__ == "__main__":

@@ -10,12 +10,13 @@ from pathlib import Path
 import eel
 from PIL import Image
 
+from config import APP_NAME, APP_VERSION, WINDOW_POSITION, WINDOW_SIZE
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 eel.init("web")
 
-APP_VERSION = "1.10.9"
 DATA_DIR = Path("data")
 DB_FILE = DATA_DIR / "games.db"
 SCREENSHOTS_DIR = DATA_DIR / "screenshots"
@@ -370,8 +371,8 @@ def get_statistics():
 
 
 if __name__ == "__main__":
-    print("🚀 Запуск Game Collection Manager...")
+    print(f"🚀 Запуск {APP_NAME} v{APP_VERSION}...")
     ensure_dirs()
     init_db()
 
-    eel.start("index.html", size=(1200, 660), position=(100, 100))
+    eel.start("index.html", size=WINDOW_SIZE, position=WINDOW_POSITION)
