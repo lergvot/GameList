@@ -4,7 +4,7 @@
 """
 
 # Версия приложения
-APP_VERSION = "1.10.9"
+APP_VERSION = "1.11.0"
 
 # Название приложения
 APP_NAME = "Game Collection Manager"
