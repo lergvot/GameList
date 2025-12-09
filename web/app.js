@@ -11,7 +11,7 @@ let unsavedScreenshotData = null;
 let editingGame = null;
 let isSubmitting = false;
 let duplicatePopupTimeout = null;
-let currentSort = "rating-desc"; // Значение по умолчанию для сортировки
+let currentSort = "added-asc"; // Сортировка по умолчанию
 
 // ============================================
 // DOM ЭЛЕМЕНТЫ (CACHED ELEMENTS)
@@ -347,6 +347,9 @@ function attachHandlers() {
 
   // Обработчик сортировки
   if (sortSelect) {
+    // Устанавливаем текущее значение по умолчанию
+    sortSelect.value = currentSort;
+
     sortSelect.addEventListener("change", (e) => {
       currentSort = e.target.value;
       filterAndDisplay();
@@ -423,7 +426,7 @@ function sortGames(games) {
       break;
 
     case "added-asc":
-      // По дате обновления (новые сверху)
+    default: // По умолчанию - по дате обновления (новые сверху)
       sorted.sort((a, b) => {
         const dateA = new Date(
           a.updated_at || a.created_at || "1970-01-01"
@@ -434,18 +437,6 @@ function sortGames(games) {
         return dateB - dateA;
       });
       break;
-
-    default:
-      // По умолчанию - по дате обновления (новые сверху)
-      sorted.sort((a, b) => {
-        const dateA = new Date(
-          a.updated_at || a.created_at || "1970-01-01"
-        ).getTime();
-        const dateB = new Date(
-          b.updated_at || b.created_at || "1970-01-01"
-        ).getTime();
-        return dateB - dateA;
-      });
   }
 
   return sorted;
