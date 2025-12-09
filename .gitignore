@@ -2,6 +2,8 @@
 /dist
 /build
 /tests
+/Games List Manager
+/venv
+__pycache__
 future.txt
 TODO.md
-/Games List Manager
