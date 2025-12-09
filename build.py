@@ -1,4 +1,4 @@
-# build.py (только изменения)
+# build.py
 import os
 import shutil
 import sys
@@ -16,7 +16,7 @@ def get_version():
 
 def build_local():
     """Локальная сборка"""
-    print(f"[BUILD] Локальная сборка {APP_NAME} v{APP_VERSION}...")
+    print(f"[BUILD] Local build {APP_NAME} v{APP_VERSION}...")
 
     args = [
         "main.py",
@@ -38,13 +38,13 @@ def build_local():
 
     # Очистка
     cleanup()
-    print(f"[OK] Локальная сборка завершена!")
+    print(f"[OK] Local build completed!")
     print(f"[DIR] EXE: {BUILD_CONFIG['exe_name']}/{BUILD_CONFIG['exe_name']}.exe")
 
 
 def build_release():
     """Релизная сборка"""
-    print(f"[RELEASE] Сборка релиза v{APP_VERSION}...")
+    print(f"[RELEASE] Building release v{APP_VERSION}...")
 
     # Формируем имена из конфига
     safe_name = f"{BUILD_CONFIG['release_prefix']}_v{APP_VERSION}"
@@ -83,7 +83,7 @@ def build_release():
     # Очистка
     cleanup()
 
-    print(f"[OK] Релиз v{APP_VERSION} собран!")
+    print(f"[OK] Release v{APP_VERSION} built!")
     print(f"[ARCHIVE] {zip_path}")
 
 
@@ -104,7 +104,7 @@ def copy_additional_files(dest_dir):
     for file in files_to_copy:
         if os.path.exists(file):
             shutil.copy2(file, f"{dest_dir}/{file}")
-            print(f"[INFO] Добавлен: {file}")
+            print(f"[INFO] Added: {file}")
 
 
 def create_archive(source_dir, output_path, base_dir):

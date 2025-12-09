@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Для changelog
+          fetch-depth: 0 # For changelog
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -31,56 +31,56 @@ jobs:
 
       - name: Verify version
         run: |
-          # Извлекаем версию из main.py
+          # Extract version from config.py
           PY_VERSION=$(python3 -c "import config; print(config.APP_VERSION)")
           TAG_VERSION="${GITHUB_REF#refs/tags/v}"
 
-          echo "Версия в main.py: $PY_VERSION"
-          echo "Версия тега: $TAG_VERSION"
+          echo "Version in config.py: $PY_VERSION"
+          echo "Tag version: $TAG_VERSION"
 
           if [ "$PY_VERSION" != "$TAG_VERSION" ]; then
-            echo "❌ Версии не совпадают!"
+            echo "❌ Version mismatch!"
             exit 1
           fi
 
-          echo "✅ Версии совпадают"
+          echo "✅ Versions match"
 
       - name: Build release
         run: python build.py --release
 
       - name: Generate changelog
         run: |
-          # Получаем предыдущий тег
+          # Get previous tag
           git fetch --tags --force
           previous_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
 
-          # Получаем URL репозитория для ссылок
+          # Get repository URL for links
           REPO_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
 
           if [ -z "$previous_tag" ]; then
             echo "### 🎮 Games List Manager ${{ github.ref_name }}" > changelog.md
-            echo "Первый релиз!" >> changelog.md
+            echo "First release!" >> changelog.md
             echo "" >> changelog.md
-            echo "#### Все коммиты:" >> changelog.md
-            # Выводим коммиты с хэшами и ссылками
+            echo "#### All commits:" >> changelog.md
+            # Show commits with hashes and links
             git log --pretty=format:"- [%h]($REPO_URL/commit/%H) %s" --no-merges >> changelog.md
           else
             echo "### 🎮 Games List Manager ${{ github.ref_name }}" > changelog.md
             echo "" >> changelog.md
-            echo "#### Изменения с $previous_tag:" >> changelog.md
-            # Выводим коммиты с хэшами и ссылками
+            echo "#### Changes since $previous_tag:" >> changelog.md
+            # Show commits with hashes and links
             git log --pretty=format:"- [%h]($REPO_URL/commit/%H) %s" --no-merges $previous_tag..HEAD >> changelog.md
           fi
 
           echo "" >> changelog.md
           echo "---" >> changelog.md
-          echo "*Релиз создан автоматически*" >> changelog.md
+          echo "*Automatically generated release*" >> changelog.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           name: Games List Manager ${{ github.ref_name }}
           body_path: changelog.md
-          files: dist/*.zip # ТОЛЬКО наш ZIP с приложением
+          files: dist/*.zip
           draft: false
           prerelease: false
