@@ -11,6 +11,7 @@ let unsavedScreenshotData = null;
 let editingGame = null;
 let isSubmitting = false;
 let duplicatePopupTimeout = null;
+let currentSort = "rating-desc"; // Значение по умолчанию для сортировки
 
 // ============================================
 // DOM ЭЛЕМЕНТЫ (CACHED ELEMENTS)
@@ -25,6 +26,7 @@ const searchInput = document.getElementById("search");
 const statusSelect = document.getElementById("status");
 const titleInput = document.getElementById("title");
 const duplicatePopup = document.getElementById("duplicate-popup");
+const sortSelect = document.getElementById("sort-select");
 
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ (INITIALIZATION)
@@ -342,6 +344,14 @@ function attachHandlers() {
       hideDuplicatePopup();
     }
   });
+
+  // Обработчик сортировки
+  if (sortSelect) {
+    sortSelect.addEventListener("change", (e) => {
+      currentSort = e.target.value;
+      filterAndDisplay();
+    });
+  }
 }
 
 // ============================================
@@ -363,12 +373,82 @@ function filterAndDisplay() {
     return matchesFilter && matchesSearch;
   });
 
-  // Сортировка: с рейтингом вначале, по убыванию рейтинга
-  const rated = filtered.filter((g) => g.rating && Number(g.rating) > 0);
-  const unrated = filtered.filter((g) => !g.rating || Number(g.rating) <= 0);
-  rated.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+  // Применяем сортировку
+  filtered = sortGames(filtered);
 
-  renderList([...rated, ...unrated]);
+  renderList(filtered);
+}
+
+// ============================================
+// ФУНКЦИЯ СОРТИРОВКИ
+// ============================================
+function sortGames(games) {
+  if (!games.length) return games;
+
+  // Создаем копию массива для сортировки
+  const sorted = [...games];
+
+  switch (currentSort) {
+    case "rating-desc":
+      // По оценке (убывание)
+      sorted.sort((a, b) => {
+        const ratingA = parseFloat(a.rating) || 0;
+        const ratingB = parseFloat(b.rating) || 0;
+
+        // Сначала игры с рейтингом, затем без
+        if (ratingA === 0 && ratingB === 0) return 0;
+        if (ratingA === 0) return 1;
+        if (ratingB === 0) return -1;
+
+        return ratingB - ratingA;
+      });
+      break;
+
+    case "title-asc":
+      // По названию (А-Я)
+      sorted.sort((a, b) => {
+        const titleA = (a.title || "").toLowerCase();
+        const titleB = (b.title || "").toLowerCase();
+        return titleA.localeCompare(titleB);
+      });
+      break;
+
+    case "added-desc":
+      // По дате добавления (новые сверху)
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.created_at || "1970-01-01").getTime();
+        const dateB = new Date(b.created_at || "1970-01-01").getTime();
+        return dateB - dateA;
+      });
+      break;
+
+    case "added-asc":
+      // По дате обновления (новые сверху)
+      sorted.sort((a, b) => {
+        const dateA = new Date(
+          a.updated_at || a.created_at || "1970-01-01"
+        ).getTime();
+        const dateB = new Date(
+          b.updated_at || b.created_at || "1970-01-01"
+        ).getTime();
+        return dateB - dateA;
+      });
+      break;
+
+    default:
+      // По умолчанию - по дате обновления (новые сверху)
+      sorted.sort((a, b) => {
+        const dateA = new Date(
+          a.updated_at || a.created_at || "1970-01-01"
+        ).getTime();
+        const dateB = new Date(
+          b.updated_at || b.created_at || "1970-01-01"
+        ).getTime();
+        return dateB - dateA;
+      });
+  }
+
+  return sorted;
 }
 
 // ============================================

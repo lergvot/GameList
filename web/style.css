@@ -101,6 +101,11 @@ body {
   align-items: center;
   gap: var(--element-gap);
 }
+.topbar .right {
+  display: flex;
+  align-items: center;
+  gap: var(--element-gap);
+}
 
 .btn {
   background: transparent;
