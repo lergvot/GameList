@@ -1,47 +1,47 @@
-/* style.css - Полностью рефакторинговая версия */
-/* Совместимость только с desktop браузерами на движке Chromium */
+/* style.css - Production-ready CSS with full documentation */
+/* Compatible with desktop Chromium-based browsers only */
 
 /* ==========================================================================
    1. CSS VARIABLES & THEME SYSTEM
    ========================================================================== */
+
 :root {
-  /* ============ ЦВЕТОВАЯ ПАЛИТРА (ТЁМНАЯ ТЕМА) ============ */
-  /* Основные цвета */
+  /* ============ COLOR PALETTE (DARK THEME) ============ */
+
+  /* Base colors */
   --color-bg: #1a1a1a;
   --color-surface: #2d2d2d;
-  --color-card: #252525; /* Темнее для лучшего контраста */
+  --color-card: #252525;
   --color-card-hover: #2d2d2d;
   --color-border: #404040;
   --color-border-hover: #4d4d4d;
 
-  /* Цвета текста */
+  /* Text colors */
   --color-text-primary: #f0f0f0;
-  --color-text-secondary: #cccccc; /* Более контрастный */
+  --color-text-secondary: #cccccc;
   --color-text-muted: #999999;
 
-  /* Акцентные цвета */
+  /* Accent colors */
   --color-accent: #0078d4;
   --color-accent-hover: #106ebe;
+  --color-accent-bg: rgba(0, 120, 212, 0.08);
 
-  /* Цвета статусов */
+  /* Status colors */
   --color-status-playing: #4e94ce;
   --color-status-playing-bg: rgba(78, 148, 206, 0.15);
-
   --color-status-completed: #107c10;
   --color-status-completed-bg: rgba(16, 124, 16, 0.15);
-
   --color-status-planned: #d7ba7d;
   --color-status-planned-bg: rgba(215, 186, 125, 0.12);
-
   --color-status-dropped: #d13438;
   --color-status-dropped-bg: rgba(209, 52, 56, 0.15);
 
-  /* Цвета состояний */
+  /* State colors */
   --color-hover: rgba(255, 255, 255, 0.07);
   --color-active: rgba(255, 255, 255, 0.1);
   --color-disabled: rgba(255, 255, 255, 0.3);
 
-  /* ============ РАЗМЕРЫ И ОТСТУПЫ ============ */
+  /* ============ SPACING SYSTEM ============ */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -49,19 +49,19 @@
   --space-xl: 20px;
   --space-2xl: 24px;
 
-  /* ============ РАДИУСЫ ЗАКРУГЛЕНИЯ ============ */
+  /* ============ BORDER RADIUS SYSTEM ============ */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
   --radius-full: 999px;
 
-  /* ============ ТЕНИ ============ */
+  /* ============ SHADOWS ============ */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
 
-  /* ============ ТИПОГРАФИКА ============ */
+  /* ============ TYPOGRAPHY ============ */
   font-family: "Segoe UI", "Inter", Roboto, system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.4;
@@ -70,6 +70,7 @@
 /* ==========================================================================
    2. CSS RESET & BASE STYLES
    ========================================================================== */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -89,8 +90,9 @@ body {
 }
 
 /* ==========================================================================
-   3. ТИПОГРАФИКА
+   3. TYPOGRAPHY
    ========================================================================== */
+
 h1,
 h2,
 h3,
@@ -103,9 +105,11 @@ h4 {
 h1 {
   font-size: 1.6rem;
 }
+
 h2 {
   font-size: 1.4rem;
 }
+
 h3 {
   font-size: 1.1rem;
 }
@@ -116,8 +120,9 @@ p {
 }
 
 /* ==========================================================================
-   4. ОСНОВНОЙ LAYOUT
+   4. MAIN LAYOUT
    ========================================================================== */
+
 .app {
   max-width: 1200px;
   margin: var(--space-md) auto;
@@ -136,8 +141,9 @@ p {
 }
 
 /* ==========================================================================
-   5. КОМПОНЕНТ: HEADER
+   5. COMPONENT: HEADER
    ========================================================================== */
+
 .app-header {
   padding: 0 0 var(--space-lg) 0;
   margin-bottom: var(--space-md);
@@ -177,8 +183,9 @@ p {
 }
 
 /* ==========================================================================
-   6. КОМПОНЕНТ: TOPBAR
+   6. COMPONENT: TOPBAR
    ========================================================================== */
+
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -201,8 +208,9 @@ p {
 }
 
 /* ==========================================================================
-   6.1 КОМПОНЕНТ: HEADER SETTINGS
+   6.1 COMPONENT: HEADER SETTINGS
    ========================================================================== */
+
 .app-header__settings {
   position: absolute;
   top: var(--space-md);
@@ -213,7 +221,6 @@ p {
   z-index: 10;
 }
 
-/* Маленький селект для настроек */
 .select--small {
   min-width: 140px;
   font-size: 12px;
@@ -222,7 +229,6 @@ p {
   background-size: 14px;
 }
 
-/* Иконка темы в кнопке */
 #theme-toggle {
   font-size: 16px;
   padding: 6px;
@@ -235,7 +241,6 @@ p {
   transform: scale(1.1);
 }
 
-/* Стиль для активной темы */
 body.theme-light #theme-toggle {
   background: var(--color-accent-bg);
   border-color: var(--color-accent);
@@ -247,30 +252,26 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   7. КОМПОНЕНТ: КНОПКИ (BUTTONS)
+   7. COMPONENT: BUTTONS
    ========================================================================== */
+
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-
   background: var(--color-surface);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
-
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
-
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
   line-height: 1;
-
   min-height: 32px;
   cursor: pointer;
   user-select: none;
-
   transition: background-color 0.15s ease, border-color 0.15s ease,
     color 0.15s ease;
 }
@@ -289,7 +290,7 @@ body.theme-light #theme-toggle {
   cursor: not-allowed;
 }
 
-/* Варианты кнопок */
+/* Button variants */
 .btn--primary {
   background: var(--color-accent);
   color: white;
@@ -316,7 +317,7 @@ body.theme-light #theme-toggle {
   border-color: var(--color-border);
 }
 
-/* Размеры кнопок */
+/* Button sizes */
 .btn--small {
   padding: var(--space-xs) var(--space-sm);
   font-size: 12px;
@@ -346,8 +347,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   8. КОМПОНЕНТ: ФОРМЫ (FORMS)
+   8. COMPONENT: FORMS
    ========================================================================== */
+
 .form__input,
 .form__select,
 .form__textarea {
@@ -376,14 +378,13 @@ body.theme-light #theme-toggle {
   line-height: 1.4;
 }
 
-/* Скрываем стрелки у числового поля */
 .form__input[type="number"]::-webkit-outer-spin-button,
 .form__input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Стили для select */
+/* Select styles */
 .form__select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -391,13 +392,10 @@ body.theme-light #theme-toggle {
   background-position: right 8px center;
   background-size: 16px;
   padding-right: 32px;
-
-  /* Стандартные цвета как у обычного select */
   background-color: var(--color-surface);
   color: var(--color-text-primary);
 }
 
-/* Стили для option в Chromium */
 .form__select option,
 .select option {
   background: var(--color-surface);
@@ -405,7 +403,7 @@ body.theme-light #theme-toggle {
   padding: var(--space-sm);
 }
 
-/* Варианты select для статусов - применяются только после выбора */
+/* Status-specific select styles */
 .form__select[value="playing"],
 .form__select--playing {
   background-color: var(--color-status-playing-bg);
@@ -434,7 +432,7 @@ body.theme-light #theme-toggle {
   border-color: var(--color-status-dropped);
 }
 
-/* Метки формы */
+/* Form labels */
 .form__label {
   display: block;
   margin-bottom: var(--space-xs);
@@ -457,7 +455,7 @@ body.theme-light #theme-toggle {
   margin-left: 2px;
 }
 
-/* Сетка формы */
+/* Form layout */
 .form__grid {
   display: grid;
   gap: var(--space-sm);
@@ -482,27 +480,24 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   9. КОМПОНЕНТ: ПОИСК И СОРТИРОВКА
+   9. COMPONENT: SEARCH AND SORT
    ========================================================================== */
+
 .search {
   width: 240px;
   min-height: 32px;
   padding: var(--space-sm) var(--space-md);
   padding-left: 36px;
-
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
-
   font-family: inherit;
   font-size: 13px;
-
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3ccircle cx='11' cy='11' r='8'%3e%3c/circle%3e%3cpath d='m21 21-4.35-4.35'%3e%3c/path%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: left 10px center;
   background-size: 16px;
-
   transition: border-color 0.15s ease;
 }
 
@@ -524,22 +519,18 @@ body.theme-light #theme-toggle {
   min-height: 32px;
   padding: var(--space-sm) var(--space-md);
   padding-right: 32px;
-
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
-
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
-
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 8px center;
   background-size: 16px;
-
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
@@ -554,8 +545,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   10. КОМПОНЕНТ: СТАТИСТИКА (STATS)
+   10. COMPONENT: STATISTICS
    ========================================================================== */
+
 .stats {
   display: flex;
   gap: var(--space-xs);
@@ -587,7 +579,7 @@ body.theme-light #theme-toggle {
   color: var(--color-text-primary);
 }
 
-/* Цветные фоны для активных фильтров */
+/* Active filter colors */
 .stats__item--active[data-filter="playing"] {
   background: var(--color-status-playing-bg);
   color: var(--color-status-playing);
@@ -623,8 +615,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   11. КОМПОНЕНТ: СТАТУС-БЭДЖИ (STATUS BADGES)
+   11. COMPONENT: STATUS BADGES
    ========================================================================== */
+
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -672,8 +665,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   12. КОМПОНЕНТ: КАРТОЧКИ ИГР (GAME CARDS)
+   12. COMPONENT: GAME CARDS
    ========================================================================== */
+
 .games-list {
   display: flex;
   flex-direction: column;
@@ -686,21 +680,15 @@ body.theme-light #theme-toggle {
   grid-template-columns: 160px 1fr 140px;
   grid-template-rows: auto 1fr auto;
   gap: var(--space-md);
-
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-md);
-
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 155px;
-  position: relative;
-
   min-height: 150px;
   max-height: 150px;
   height: 150px;
-  overflow: hidden;
 }
 
 .game-card:hover {
@@ -716,9 +704,9 @@ body.theme-light #theme-toggle {
   flex-direction: column;
   align-items: center;
   gap: var(--space-sm);
-
-  height: 122px; /* 150px - padding (2 * 12px = 24px) - gap (4px) = 122px */
+  height: 122px;
   justify-content: flex-start;
+  overflow: hidden;
 }
 
 .game-card__rating {
@@ -727,6 +715,9 @@ body.theme-light #theme-toggle {
   color: var(--color-text-primary);
   text-align: center;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .game-card__image {
@@ -761,7 +752,6 @@ body.theme-light #theme-toggle {
   flex-direction: column;
   gap: var(--space-xs);
   min-width: 0;
-
   height: 122px;
   overflow: hidden;
 }
@@ -809,12 +799,16 @@ body.theme-light #theme-toggle {
   gap: var(--space-xs);
   min-width: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .game-card__version {
   font-style: italic;
   font-size: 0.8rem;
   color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .game-card__review {
@@ -836,8 +830,8 @@ body.theme-light #theme-toggle {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-
   height: 122px;
+  overflow: hidden;
 }
 
 .game-card__status-wrapper {
@@ -861,6 +855,7 @@ body.theme-light #theme-toggle {
   line-height: 1.3;
   min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
 .game-card__date {
@@ -872,11 +867,7 @@ body.theme-light #theme-toggle {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: help;
-}
-
-.game-card__date:hover {
-  color: var(--color-text-primary);
+  cursor: pointer;
 }
 
 .game-card__actions {
@@ -902,8 +893,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   13. КОМПОНЕНТ: МОДАЛЬНЫЕ ОКНА (MODALS)
+   13. COMPONENT: MODALS
    ========================================================================== */
+
 .modal {
   position: fixed;
   inset: 0;
@@ -1011,8 +1003,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   14. КОМПОНЕНТ: ФОРМА ДОБАВЛЕНИЯ/РЕДАКТИРОВАНИЯ
+   14. COMPONENT: ADD/EDIT FORM
    ========================================================================== */
+
 .form__content {
   display: grid;
   grid-template-columns: 1fr 260px;
@@ -1086,8 +1079,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   15. КОМПОНЕНТ: ПРОСМОТР ИГРЫ (VIEW)
+   15. COMPONENT: GAME VIEW MODAL
    ========================================================================== */
+
 .view {
   display: grid;
   grid-template-columns: 400px 1fr;
@@ -1207,7 +1201,11 @@ body.theme-light #theme-toggle {
 .view__review {
   height: 140px;
   margin: var(--space-xs) 0;
-  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  overflow: hidden;
+  position: relative;
 }
 
 .view__review-content {
@@ -1215,11 +1213,11 @@ body.theme-light #theme-toggle {
   white-space: pre-wrap;
   line-height: 1.5;
   font-size: 0.9rem;
-  height: 100%;
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
   padding: var(--space-sm);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  box-sizing: border-box;
 }
 
 .view__footer {
@@ -1252,8 +1250,9 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   16. КОМПОНЕНТ: ПОПАП ДУБЛИКАТОВ
+   16. COMPONENT: DUPLICATE POPUP
    ========================================================================== */
+
 .duplicate-popup {
   position: absolute;
   top: 100%;
@@ -1322,71 +1321,42 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   17. КОМПОНЕНТ: КАСТОМНЫЕ ТУЛТИПЫ
+   17. GLOBAL TOOLTIPS (JavaScript-based)
    ========================================================================== */
-[data-tooltip] {
-  position: relative;
-}
 
-[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-
+.global-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
   background: var(--color-surface);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: var(--space-xs) var(--space-sm);
-
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 1000;
-
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.15s ease;
+  z-index: 9999;
   pointer-events: none;
-
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
   box-shadow: var(--shadow-md);
+  max-width: 300px;
+  word-wrap: break-word;
+  white-space: normal;
+  text-align: center;
 }
 
-[data-tooltip]:hover::after {
+.global-tooltip--visible {
   opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(-4px);
-}
-
-/* Тултип снизу */
-[data-tooltip-bottom]::after {
-  top: 100%;
-  bottom: auto;
-  transform: translateX(-50%) translateY(-4px);
-}
-
-[data-tooltip-bottom]:hover::after {
-  transform: translateX(-50%) translateY(4px);
-}
-
-/* Тултип слева */
-[data-tooltip-left]::after {
-  left: auto;
-  right: 100%;
-  top: 50%;
-  bottom: auto;
-  transform: translateX(4px) translateY(-50%);
-}
-
-[data-tooltip-left]:hover::after {
-  transform: translateX(-4px) translateY(-50%);
+  transform: translateY(0);
 }
 
 /* ==========================================================================
-   18. УТИЛИТЫ (UTILITIES)
+   18. UTILITY CLASSES
    ========================================================================== */
+
 .hidden {
   display: none !important;
 }
@@ -1395,7 +1365,7 @@ body.modal-open {
   overflow: hidden;
 }
 
-/* Спиннер */
+/* Spinner */
 .spinner {
   width: 40px;
   height: 40px;
@@ -1415,7 +1385,7 @@ body.modal-open {
   }
 }
 
-/* Toast-уведомления */
+/* Toast notifications */
 .toast {
   position: fixed;
   top: 18px;
@@ -1444,7 +1414,8 @@ body.modal-open {
 /* ==========================================================================
    19. VENDOR STYLES (Chromium specific)
    ========================================================================== */
-/* Улучшенные скроллбары */
+
+/* Enhanced scrollbars */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -1473,7 +1444,7 @@ body.modal-open {
   background: rgba(255, 255, 255, 0.4);
 }
 
-/* Особый скролл для списка игр */
+/* Specific scrollbar for games list */
 .games-list::-webkit-scrollbar-track {
   background: var(--color-surface);
   border-radius: var(--radius-sm);
@@ -1488,11 +1459,12 @@ body.modal-open {
 }
 
 /* ==========================================================================
-   20. СВЕТЛАЯ ТЕМА (подготовка)
+   20. LIGHT THEME (System preference)
    ========================================================================== */
+
 @media (prefers-color-scheme: light) {
   :root {
-    /* Светлая тема (системная) */
+    /* Light theme (system) */
     --color-bg: #f3f3f3;
     --color-surface: #ffffff;
     --color-card: #f9f9f9;
@@ -1508,16 +1480,13 @@ body.modal-open {
     --color-accent-hover: #106ebe;
     --color-accent-bg: rgba(0, 120, 212, 0.08);
 
-    /* Цвета статусов для светлой темы */
+    /* Status colors for light theme */
     --color-status-playing: #0f6cbd;
     --color-status-playing-bg: rgba(15, 108, 189, 0.1);
-
     --color-status-completed: #107c10;
     --color-status-completed-bg: rgba(16, 124, 16, 0.1);
-
     --color-status-planned: #8a6800;
     --color-status-planned-bg: rgba(138, 104, 0, 0.08);
-
     --color-status-dropped: #c50f1f;
     --color-status-dropped-bg: rgba(197, 15, 31, 0.1);
 
@@ -1525,7 +1494,7 @@ body.modal-open {
     --color-active: rgba(0, 0, 0, 0.08);
   }
 
-  /* Инвертированные иконки для светлой темы */
+  /* Inverted icons for light theme */
   .search {
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3ccircle cx='11' cy='11' r='8'%3e%3c/circle%3e%3cpath d='m21 21-4.35-4.35'%3e%3c/path%3e%3c/svg%3e");
   }
@@ -1535,21 +1504,24 @@ body.modal-open {
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   }
 
-  /* Стили для option в светлой теме */
+  /* Option styles for light theme */
   .form__select option,
   .select option {
     background: var(--color-surface);
     color: var(--color-text-primary);
   }
 
-  /* Стили для upload-area в светлой теме */
+  /* Upload area styles for light theme */
   .upload-area {
     background: var(--color-card);
     border-color: var(--color-border);
   }
 }
 
-/* Класс для принудительной светлой темы */
+/* ==========================================================================
+   21. FORCED LIGHT THEME CLASS
+   ========================================================================== */
+
 .theme-light {
   --color-bg: #f3f3f3;
   --color-surface: #ffffff;
@@ -1566,16 +1538,13 @@ body.modal-open {
   --color-accent-hover: #106ebe;
   --color-accent-bg: rgba(0, 120, 212, 0.08);
 
-  /* Цвета статусов для светлой темы */
+  /* Status colors for light theme */
   --color-status-playing: #0f6cbd;
   --color-status-playing-bg: rgba(15, 108, 189, 0.1);
-
   --color-status-completed: #107c10;
   --color-status-completed-bg: rgba(16, 124, 16, 0.1);
-
   --color-status-planned: #8a6800;
   --color-status-planned-bg: rgba(138, 104, 0, 0.08);
-
   --color-status-dropped: #c50f1f;
   --color-status-dropped-bg: rgba(197, 15, 31, 0.1);
 

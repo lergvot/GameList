@@ -77,7 +77,7 @@ function renderGameCards(games, helpers) {
         
         <div class="game-card__main">
           <div class="game-card__header">
-            <h3 class="game-card__title" title="${escapedGame.title}">
+            <h3 class="game-card__title" data-tooltip="${escapedGame.title}">
               ${escapedGame.title || "—"}
             </h3>
             <button class="game-card__copy" 
@@ -85,7 +85,6 @@ function renderGameCards(games, helpers) {
                       /'/g,
                       "\\'"
                     )}')"
-                    aria-label="Копировать название"
                     data-tooltip="Копировать название">
               ⧉
             </button>
@@ -322,8 +321,11 @@ export function showView(game) {
   const viewModal = document.getElementById("view-modal");
   if (!viewModal) return;
 
-  document.getElementById("view-title").textContent = game.title || "—";
-  document.getElementById("view-title").title = game.title || "";
+  const viewTitleEl = document.getElementById("view-title");
+  viewTitleEl.textContent = game.title || "—";
+  // Убираем браузерный тултип, оставляем только кастомный
+  viewTitleEl.title = "";
+  viewTitleEl.setAttribute("data-tooltip", game.title || "");
 
   document.getElementById("view-rating").textContent =
     game.rating && Number(game.rating) > 0
