@@ -520,7 +520,7 @@ body.theme-light #theme-toggle {
 }
 
 .select {
-  min-width: 180px;
+  min-width: 120px;
   min-height: 32px;
   padding: var(--space-sm) var(--space-md);
   padding-right: 32px;
