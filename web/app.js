@@ -79,7 +79,7 @@ function filterAndDisplay(state) {
 async function updateAppVersion() {
   try {
     const version = await api.getAppVersion();
-    const versionElement = document.querySelector(".app-version");
+    const versionElement = document.querySelector(".app-header__version");
     if (versionElement) {
       versionElement.textContent = `v${version}`;
     }

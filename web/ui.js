@@ -26,7 +26,7 @@ let gamesListEl,
   sortSelect;
 
 // ============================================
-// ШАБЛОНЫ КАРТОЧЕК (бывший gameCard.js)
+// ШАБЛОНЫ КАРТОЧЕК
 // ============================================
 function renderGameCards(games, helpers) {
   if (!games.length) {
@@ -52,7 +52,8 @@ function renderGameCards(games, helpers) {
         createdFull: formatDateTime(game.created_at, false),
         updatedDate: formatDateTime(game.updated_at, true),
         updatedFull: formatDateTime(game.updated_at, false),
-        statusClass: statusClassFor(game.status),
+        statusClass: `status-badge--${game.status}`,
+        statusText: getStatusTextRu(game.status).toUpperCase(),
       };
 
       // JSON.stringify для передачи объекта в onclick
@@ -61,85 +62,95 @@ function renderGameCards(games, helpers) {
       return `
       <article class="game-card" data-id="${escapedGame.id}" 
                onclick="app.showView(${gameJson})">
-        <div class="card-image-block">
-          <div class="card-rating">
+        <div class="game-card__left">
+          <div class="game-card__rating">
             ${escapedGame.rating} ★
           </div>
-          <div class="card-image">
+          <div class="game-card__image">
             ${
               escapedGame.screenshot
                 ? `<img src="${escapedGame.screenshot}" alt="${escapedGame.title}" loading="lazy">`
-                : '<div style="color:var(--muted)">Нет изображения</div>'
+                : '<div class="game-card__image-placeholder">Нет изображения</div>'
             }
           </div>
         </div>
         
-        <!-- Заголовок в первой строке -->
-        <div class="card-main">
-          <div class="card-title">
-            <span class="card-title-text" title="${escapedGame.title}">
+        <div class="game-card__main">
+          <div class="game-card__header">
+            <h3 class="game-card__title" title="${escapedGame.title}">
               ${escapedGame.title || "—"}
-            </span>
-            <button class="copy-title" title="Копировать название" 
-              onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.title.replace(
-                /'/g,
-                "\\'"
-              )}')">
+            </h3>
+            <button class="game-card__copy" 
+                    onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.title.replace(
+                      /'/g,
+                      "\\'"
+                    )}')"
+                    aria-label="Копировать название"
+                    data-tooltip="Копировать название">
               ⧉
             </button>
           </div>
+          
+          <div class="game-card__content">
+            <div class="game-card__version">Версия: ${
+              escapedGame.version || "—"
+            }</div>
+            <div class="game-card__review">${escapedGame.review}</div>
+          </div>
         </div>
         
-        <!-- Статус в первой строке -->
-        <div class="card-side">
-          <div class="card-status-wrapper">
-            <div class="card-status ${escapedGame.statusClass}">
-              ${escapedGame.status.toUpperCase()}
+        <div class="game-card__right">
+          <div class="game-card__status-wrapper">
+            <div class="status-badge ${escapedGame.statusClass}">
+              ${escapedGame.statusText}
             </div>
           </div>
-        </div>
-        
-        <!-- Контент во второй строке -->
-        <div class="card-content">
-          <div class="card-version">Версия: ${escapedGame.version || "—"}</div>
-          <div class="card-review">${escapedGame.review}</div>
-        </div>
-        
-        <!-- Кнопки действий во второй строке -->
-        <div class="card-bottom-actions">
-          <div class="card-time-stamp">
-            <span title="${escapedGame.createdFull}">
-              Создал: ${escapedGame.createdDate}
-            </span>
-            <span title="${escapedGame.updatedFull}">
-              Обновил: ${escapedGame.updatedDate}
-            </span>
-          </div>
           
-          <div class="card-actions">
-          ${
-            escapedGame.gameLink
-              ? `
-                <button class="btn small" title="Копировать ссылку" 
-                  onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.gameLink.replace(
-                    /'/g,
-                    "\\'"
-                  )}')">
-                  🡵
-                </button>
-              `
-              : ""
-          }
-            <button class="btn small" title="Редактировать" 
-              onclick="event.stopPropagation(); app.openForm(${gameJson})">
-              ✎
-            </button>
-            <button class="btn small" title="Удалить" 
-              onclick="event.stopPropagation(); app.openConfirmModal(${
-                game.id
-              })">
-              🗑
-            </button>
+          <div class="game-card__meta">
+            <div class="game-card__dates">
+              <span class="game-card__date" data-tooltip="${
+                escapedGame.createdFull
+              }">
+                Создано: ${escapedGame.createdDate}
+              </span>
+              <span class="game-card__date" data-tooltip="${
+                escapedGame.updatedFull
+              }">
+                Обновлено: ${escapedGame.updatedDate}
+              </span>
+            </div>
+            
+            <div class="game-card__actions">
+              ${
+                escapedGame.gameLink
+                  ? `
+                    <button class="btn btn--icon" 
+                      onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.gameLink.replace(
+                        /'/g,
+                        "\\'"
+                      )}')"
+                      aria-label="Копировать ссылку"
+                      data-tooltip="Копировать ссылку">
+                      🡵
+                    </button>
+                  `
+                  : ""
+              }
+              <button class="btn btn--icon" 
+                onclick="event.stopPropagation(); app.openForm(${gameJson})"
+                aria-label="Редактировать"
+                data-tooltip="Редактировать">
+                ✎
+              </button>
+              <button class="btn btn--icon btn--danger" 
+                onclick="event.stopPropagation(); app.openConfirmModal(${
+                  game.id
+                })"
+                aria-label="Удалить"
+                data-tooltip="Удалить">
+                🗑
+              </button>
+            </div>
           </div>
         </div>
       </article>
@@ -269,11 +280,15 @@ export function openForm(state, game = null) {
   // Сброс скриншота
   state.unsavedScreenshotData = null;
   screenshotInput.value = "";
-  screenshotPreview.classList.toggle("empty", !game?.screenshot_data);
+  const isScreenshotEmpty = !game?.screenshot_data;
+  screenshotPreview.classList.toggle(
+    "upload-area__preview--empty",
+    isScreenshotEmpty
+  );
   screenshotPreview.innerHTML = game?.screenshot_data
     ? `<img src="${game.screenshot_data}" alt="preview" loading="lazy">`
     : "";
-  removeScreenshotBtn.classList.toggle("hidden", !game?.screenshot_data);
+  removeScreenshotBtn.classList.toggle("hidden", isScreenshotEmpty);
 
   // Обновляем заголовок и кнопку
   document.getElementById("modal-title").textContent = game
@@ -307,14 +322,8 @@ export function showView(game) {
   const viewModal = document.getElementById("view-modal");
   if (!viewModal) return;
 
-  document.getElementById("view-header-row").innerHTML = `
-        <h3 class="view-title" title="${game.title || ""}">${
-    game.title || "—"
-  }</h3>
-        <button class="view-copy-title" title="Копировать название" onclick="app.copyToClipboard('${(
-          game.title || ""
-        ).replace(/'/g, "\\'")}')">⧉</button>
-    `;
+  document.getElementById("view-title").textContent = game.title || "—";
+  document.getElementById("view-title").title = game.title || "";
 
   document.getElementById("view-rating").textContent =
     game.rating && Number(game.rating) > 0
@@ -325,8 +334,8 @@ export function showView(game) {
   }`;
 
   const statusEl = document.getElementById("view-status");
-  statusEl.textContent = (game.status || "").toUpperCase();
-  statusEl.className = "card-status " + statusClassFor(game.status);
+  statusEl.textContent = getStatusTextRu(game.status).toUpperCase();
+  statusEl.className = `status-badge status-badge--${game.status}`;
 
   document.getElementById("view-review").textContent = game.review || "—";
 
@@ -334,26 +343,27 @@ export function showView(game) {
     ? `<img src="${game.screenshot_data}" alt="${
         game.title || "screenshot"
       }" loading="lazy">`
-    : '<div style="color:var(--muted)">Нет изображения</div>';
-
-  const linkRow = document.getElementById("view-link-row");
-  linkRow.innerHTML = game.game_link
-    ? `<button class="btn small" onclick="app.copyToClipboard('${game.game_link.replace(
-        /'/g,
-        "\\'"
-      )}')">Копировать ссылку</button>`
-    : "";
+    : '<div class="view__image-placeholder">Нет изображения</div>';
 
   const createdEl = document.getElementById("view-created-at");
   const updatedEl = document.getElementById("view-updated-at");
 
-  createdEl.textContent = `Создал: ${formatDateTime(game.created_at, false)}`;
-  updatedEl.textContent = `Обновил: ${formatDateTime(game.updated_at, false)}`;
+  createdEl.textContent = `Создано: ${formatDateTime(game.created_at, false)}`;
+  createdEl.title = formatDateTime(game.created_at, false);
+  updatedEl.textContent = `Обновлено: ${formatDateTime(
+    game.updated_at,
+    false
+  )}`;
+  updatedEl.title = formatDateTime(game.updated_at, false);
 
   document.getElementById("view-edit").onclick = () => {
     closeView();
     app.openForm(game);
   };
+
+  document.getElementById("view-copy-title").onclick = () =>
+    app.copyToClipboard(game.title || "");
+
   document.getElementById("view-delete").onclick = () =>
     app.openConfirmModal(game.id);
 
@@ -421,21 +431,11 @@ export function copyToClipboard(text) {
 export function showToast(message) {
   const toast = document.createElement("div");
   toast.textContent = message;
-  toast.style.cssText = `
-        position: fixed; top: 18px; right: 18px;
-        background: rgba(0,0,0,0.8); padding: 12px 16px;
-        border-radius: 8px; color: #fff; z-index: 200;
-        font-size: 14px; font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
-        max-width: 300px; word-wrap: break-word;
-        opacity: 0; transform: translateY(-20px);
-        transition: all 0.3s ease;
-    `;
+  toast.className = "toast";
   document.body.appendChild(toast);
 
-  setTimeout(() => (toast.style.opacity = "1"), 10);
-  setTimeout(() => (toast.style.opacity = "0"), 2000);
+  setTimeout(() => toast.classList.add("toast--visible"), 10);
+  setTimeout(() => toast.classList.remove("toast--visible"), 2000);
   setTimeout(() => toast.remove(), 2300);
 }
 
@@ -487,20 +487,20 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
   duplicatePopup.innerHTML = "";
 
   const list = document.createElement("ul");
-  list.className = "duplicate-list";
+  list.className = "duplicate-popup__list";
 
   similarGames.forEach((game) => {
     const listItem = document.createElement("li");
-    listItem.className = "duplicate-list-item";
+    listItem.className = "duplicate-popup__item";
 
-    const statusClass = statusClassFor(game.status);
+    const statusClass = `status-badge--${game.status}`;
     const statusText = getStatusTextRu(game.status).toUpperCase();
 
     listItem.innerHTML = `
-      <span class="duplicate-game-name">${
+      <span class="duplicate-popup__name">${
         game.title || game.name || "Без названия"
       }</span>
-      <span class="card-status-duplicate ${statusClass}">${statusText}</span>
+      <span class="status-badge ${statusClass}">${statusText}</span>
     `;
 
     list.appendChild(listItem);
@@ -509,7 +509,7 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
   duplicatePopup.appendChild(list);
 
   // Показываем попап
-  duplicatePopup.classList.add("active");
+  duplicatePopup.classList.add("duplicate-popup--active");
 
   // Убираем все инлайн-стили, чтобы работали CSS стили
   duplicatePopup.style = "";
@@ -527,7 +527,7 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
 
 export function hideDuplicatePopup() {
   if (duplicatePopup) {
-    duplicatePopup.classList.remove("active");
+    duplicatePopup.classList.remove("duplicate-popup--active");
     duplicatePopup.innerHTML = "";
     duplicatePopup.style = "";
   }
@@ -591,11 +591,10 @@ export function setupEventHandlers(state) {
   statusSelect.addEventListener("change", updateStatusSelectStyle);
 
   // Фильтры статистики
-  document.querySelectorAll(".stat-item").forEach((btn) => {
+  document.querySelectorAll(".stats__item").forEach((btn) => {
     btn.addEventListener("click", () => {
       const filter = btn.dataset.filter;
-      state.currentFilter =
-        state.currentFilter === filter || filter === "all" ? "all" : filter;
+      state.currentFilter = filter;
       updateStatsFilterUI(state);
       filterAndDisplay(state);
     });
@@ -639,17 +638,13 @@ export function setupEventHandlers(state) {
 
   // Скрытие попапа при клике вне его
   document.addEventListener("click", (e) => {
-    if (duplicatePopup && duplicatePopup.classList.contains("active")) {
+    if (
+      duplicatePopup &&
+      duplicatePopup.classList.contains("duplicate-popup--active")
+    ) {
       if (!duplicatePopup.contains(e.target) && e.target !== titleInput) {
         hideDuplicatePopup();
       }
-    }
-  });
-
-  // Скрытие попапа при скролле
-  window.addEventListener("scroll", () => {
-    if (duplicatePopup && duplicatePopup.classList.contains("active")) {
-      hideDuplicatePopup();
     }
   });
 
@@ -743,7 +738,7 @@ function onScreenshotSelected(e, state) {
   reader.onload = (ev) => {
     state.unsavedScreenshotData = ev.target.result;
     screenshotPreview.innerHTML = `<img src="${state.unsavedScreenshotData}" alt="preview">`;
-    screenshotPreview.classList.remove("empty");
+    screenshotPreview.classList.remove("upload-area__preview--empty");
     removeScreenshotBtn.classList.remove("hidden");
   };
   reader.readAsDataURL(file);
@@ -752,7 +747,7 @@ function onScreenshotSelected(e, state) {
 function onRemoveScreenshot(state) {
   state.unsavedScreenshotData = "";
   screenshotPreview.innerHTML = "";
-  screenshotPreview.classList.add("empty");
+  screenshotPreview.classList.add("upload-area__preview--empty");
   screenshotInput.value = "";
   removeScreenshotBtn.classList.add("hidden");
 }
@@ -760,17 +755,23 @@ function onRemoveScreenshot(state) {
 function updateStatusSelectStyle() {
   if (!statusSelect) return;
   const value = statusSelect.value;
-  statusSelect.className = `status-select status-${value}`;
+
+  // Удаляем все возможные классы статусов
+  statusSelect.classList.remove(
+    "form__select--playing",
+    "form__select--planned",
+    "form__select--completed",
+    "form__select--dropped"
+  );
+
+  // Добавляем нужный класс
+  statusSelect.classList.add(`form__select--${value}`);
 }
 
 function updateStatsFilterUI(state) {
-  document.querySelectorAll(".stat-item").forEach((btn) => {
+  document.querySelectorAll(".stats__item").forEach((btn) => {
     const filter = btn.dataset.filter;
-    btn.classList.toggle(
-      "active-filter",
-      state.currentFilter === filter ||
-        (state.currentFilter === "all" && filter === "all")
-    );
+    btn.classList.toggle("stats__item--active", state.currentFilter === filter);
   });
 }
 

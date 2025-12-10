@@ -9,54 +9,65 @@
   </head>
   <body>
     <div class="app">
-      <div class="app-header">
-        <div class="app-title-block">
-          <h1 class="app-title">Games List Manager</h1>
-          <span class="app-version">v0.0.0</span>
+      <header class="app-header">
+        <div class="app-header__title-block">
+          <h1 class="app-header__title">Games List Manager</h1>
+          <span class="app-header__version">v0.0.0</span>
         </div>
-        <p class="app-description">
+        <p class="app-header__description">
           Удобный инструмент для локального управления статусами прохождения игр
         </p>
-      </div>
+      </header>
 
-      <header class="topbar">
-        <div class="left">
-          <button id="add-game-btn" class="btn primary">+ Добавить игру</button>
+      <div class="topbar">
+        <div class="topbar__left">
+          <button
+            id="add-game-btn"
+            class="btn btn--primary btn--icon-left"
+            data-icon="+"
+          >
+            Добавить игру
+          </button>
 
-          <div class="stats-row">
-            <button class="stat-item active-filter" data-filter="all">
-              <span class="stat-num" id="total-games">0</span>
-              <span class="stat-label">Всего</span>
+          <div class="stats">
+            <button class="stats__item stats__item--active" data-filter="all">
+              <span class="stats__count" id="total-games">0</span>
+              <span class="stats__label">Всего</span>
             </button>
-            <button class="stat-item" data-filter="playing">
-              <span class="stat-num" id="playing-games">0</span>
-              <span class="stat-label">Играю</span>
+            <button class="stats__item" data-filter="playing">
+              <span class="stats__count" id="playing-games">0</span>
+              <span class="stats__label">Играю</span>
             </button>
-            <button class="stat-item" data-filter="planned">
-              <span class="stat-num" id="planned-games">0</span>
-              <span class="stat-label">В планах</span>
+            <button class="stats__item" data-filter="planned">
+              <span class="stats__count" id="planned-games">0</span>
+              <span class="stats__label">В планах</span>
             </button>
-            <button class="stat-item" data-filter="completed">
-              <span class="stat-num" id="completed-games">0</span>
-              <span class="stat-label">Пройдено</span>
+            <button class="stats__item" data-filter="completed">
+              <span class="stats__count" id="completed-games">0</span>
+              <span class="stats__label">Пройдено</span>
             </button>
-            <button class="stat-item" data-filter="dropped">
-              <span class="stat-num" id="dropped-games">0</span>
-              <span class="stat-label">Дропнул</span>
+            <button class="stats__item" data-filter="dropped">
+              <span class="stats__count" id="dropped-games">0</span>
+              <span class="stats__label">Дропнул</span>
             </button>
           </div>
         </div>
 
-        <div class="right">
-          <select id="sort-select" class="sort-select">
+        <div class="topbar__right">
+          <select id="sort-select" class="select">
             <option value="rating-desc">По оценке</option>
             <option value="title-asc">По названию</option>
             <option value="added-desc">По дате добавления</option>
             <option value="added-asc">По дате обновления</option>
           </select>
-          <input id="search" type="search" placeholder="Поиск по названию..." />
+          <input
+            id="search"
+            type="search"
+            class="search"
+            placeholder="Поиск по названию..."
+          />
         </div>
-      </header>
+      </div>
 
       <main class="content">
         <div id="games-list" class="games-list"></div>
@@ -65,30 +76,33 @@
 
     <!-- Модальное окно формы -->
     <div id="game-modal" class="modal" aria-hidden="true">
-      <div class="modal-panel form-panel">
+      <div class="modal__panel modal__panel--form">
         <!-- Overlay для блокировки формы -->
-        <div id="form-overlay" class="form-overlay" style="display: none">
-          <div class="overlay-content">
+        <div id="form-overlay" class="modal__overlay" style="display: none">
+          <div class="modal__overlay-content">
             <div class="spinner"></div>
             <p>Сохранение...</p>
           </div>
         </div>
 
-        <button class="modal-close panel-close" id="modal-close">✕</button>
-        <h2 id="modal-title">Добавить игру</h2>
+        <button class="modal__close" id="modal-close" aria-label="Закрыть">
+          ✕
+        </button>
+        <h2 class="modal__title" id="modal-title">Добавить игру</h2>
 
-        <form id="game-form" class="game-form" autocomplete="off">
+        <form id="game-form" class="form" autocomplete="off">
           <input type="hidden" id="game-id" />
 
-          <div class="form-content">
-            <div class="form-fields">
-              <div class="form-row">
-                <label for="title" class="label-full"
-                  >Название <span class="req">*</span></label
-                >
+          <div class="form__content">
+            <div class="form__fields">
+              <div class="form__row">
+                <label for="title" class="form__label">
+                  Название <span class="form__required">*</span>
+                </label>
                 <input
                   id="title"
                   type="text"
+                  class="form__input"
                   required
                   placeholder="Введите название игры"
                 />
@@ -96,21 +110,23 @@
                 <div id="duplicate-popup" class="duplicate-popup"></div>
               </div>
 
-              <div class="form-row three-cols">
-                <div class="col">
-                  <label for="version" class="small-italic">Версия</label>
+              <div class="form__grid form__grid--3cols">
+                <div class="form__field">
+                  <label for="version" class="form__label--small">Версия</label>
                   <input
                     id="version"
                     type="text"
+                    class="form__input"
                     placeholder="например, GOTY или 1.2.3"
                   />
                 </div>
 
-                <div class="col">
-                  <label for="rating" class="small-italic">Оценка</label>
+                <div class="form__field">
+                  <label for="rating" class="form__label--small">Оценка</label>
                   <input
                     id="rating"
                     type="number"
+                    class="form__input"
                     min="0"
                     max="10"
                     step="0.1"
@@ -118,9 +134,9 @@
                   />
                 </div>
 
-                <div class="col">
-                  <label for="status" class="small-italic">Статус</label>
-                  <select id="status" class="status-select">
+                <div class="form__field">
+                  <label for="status" class="form__label--small">Статус</label>
+                  <select id="status" class="form__select">
                     <option value="playing">Играю</option>
                     <option value="planned">В планах</option>
                     <option value="completed">Прошёл</option>
@@ -129,46 +145,54 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <label for="game-link" class="label-full">Ссылка на игру</label>
-                <input id="game-link" type="text" placeholder="https://..." />
+              <div class="form__row">
+                <label for="game-link" class="form__label"
+                  >Ссылка на игру</label
+                >
+                <input
+                  id="game-link"
+                  type="text"
+                  class="form__input"
+                  placeholder="https://..."
+                />
               </div>
 
-              <div class="form-row">
-                <label for="review" class="label-full">Отзыв</label>
+              <div class="form__row form__row--grow">
+                <label for="review" class="form__label">Отзыв</label>
                 <textarea
                   id="review"
+                  class="form__textarea"
                   rows="5"
                   placeholder="Коротко о впечатлениях"
                 ></textarea>
               </div>
             </div>
 
-            <div class="upload-section">
+            <div class="form__upload">
               <div class="upload-area" id="upload-area">
                 <div
                   id="screenshot-preview"
-                  class="screenshot-preview empty"
+                  class="upload-area__preview upload-area__preview--empty"
                 ></div>
                 <input
                   id="screenshot"
                   type="file"
                   accept="image/*"
-                  style="display: none"
+                  class="upload-area__input"
                 />
               </div>
               <button
                 id="remove-screenshot"
                 type="button"
-                class="btn small neutral hidden"
+                class="btn btn--secondary btn--small hidden"
               >
                 Удалить изображение
               </button>
-              <div class="form-actions">
+              <div class="form__actions">
                 <button id="cancel-btn" type="button" class="btn">
                   Отмена
                 </button>
-                <button id="save-btn" type="submit" class="btn primary">
+                <button id="save-btn" type="submit" class="btn btn--primary">
                   Добавить
                 </button>
               </div>
@@ -180,41 +204,53 @@
 
     <!-- Модальное окно просмотра -->
     <div id="view-modal" class="modal" aria-hidden="true">
-      <div class="modal-panel view-panel">
-        <button class="modal-close panel-close" id="view-close">✕</button>
+      <div class="modal__panel modal__panel--view">
+        <button class="modal__close" id="view-close" aria-label="Закрыть">
+          ✕
+        </button>
 
-        <div class="view-body">
-          <div class="view-left">
-            <div class="view-rating" id="view-rating">★ 0.0</div>
-            <div class="view-image-wrap">
-              <div class="view-image" id="view-image"></div>
+        <div class="view">
+          <div class="view__left">
+            <div class="view__rating" id="view-rating">★ 0.0</div>
+            <div class="view__image-wrap">
+              <div class="view__image" id="view-image"></div>
             </div>
           </div>
 
-          <div class="view-right">
-            <div class="view-header-row" id="view-header-row"></div>
-
-            <div class="view-meta-row">
-              <div class="view-link-wrapper" id="view-link-row"></div>
-              <div class="view-version-status">
-                <div class="view-meta" id="view-version">Версия: —</div>
-                <div class="view-status-wrapper">
-                  <div class="card-status" id="view-status">—</div>
-                </div>
-              </div>
+          <div class="view__right">
+            <div class="view__header">
+              <h3 class="view__title" id="view-title"></h3>
+              <button
+                class="view__copy"
+                id="view-copy-title"
+                aria-label="Копировать название"
+              >
+                ⧉
+              </button>
             </div>
 
-            <div class="view-review-wrapper">
-              <div class="view-review" id="view-review"></div>
+            <div class="view__meta">
+              <div class="view__version" id="view-version">Версия: —</div>
+              <div class="status-badge" id="view-status"></div>
             </div>
 
-            <div class="view-actions">
-              <div class="card-time-stamp">
-                <span id="view-created-at"> Создал: — </span>
-                <span id="view-updated-at"> Обновил: — </span>
+            <div class="view__review">
+              <div class="view__review-content" id="view-review"></div>
+            </div>
+
+            <div class="view__footer">
+              <div class="view__dates">
+                <span id="view-created-at" class="view__date">Создано: —</span>
+                <span id="view-updated-at" class="view__date"
+                  >Обновлено: —</span
+                >
               </div>
-              <button id="view-edit" class="btn">Редактировать</button>
-              <button id="view-delete" class="btn neutral">Удалить</button>
+              <div class="view__actions">
+                <button id="view-edit" class="btn">Редактировать</button>
+                <button id="view-delete" class="btn btn--danger">
+                  Удалить
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -223,17 +259,16 @@
 
     <!-- Модальное окно подтверждения -->
     <div id="confirm-modal" class="modal" aria-hidden="true">
-      <div class="modal-panel small-panel">
-        <h3>Подтвердите удаление</h3>
-        <p>Удалить карточку игры?</p>
-        <div class="form-actions">
+      <div class="modal__panel modal__panel--small">
+        <h3 class="modal__title">Подтвердите удаление</h3>
+        <p class="modal__text">Удалить карточку игры?</p>
+        <div class="modal__actions">
           <button id="confirm-cancel" class="btn">Отмена</button>
-          <button id="confirm-delete" class="btn neutral dangerish">
-            Удалить
-          </button>
+          <button id="confirm-delete" class="btn btn--danger">Удалить</button>
         </div>
       </div>
     </div>
+
     <script src="/eel.js"></script>
     <script type="module" src="app.js"></script>
   </body>

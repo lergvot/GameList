@@ -59,10 +59,10 @@ export function formatDateTime(dateString, returnOnlyDate = false) {
 
 export function statusClassFor(status) {
   const classes = {
-    completed: "status-completed",
-    playing: "status-playing",
-    planned: "status-planned",
-    dropped: "status-dropped",
+    completed: "status-badge--completed",
+    playing: "status-badge--playing",
+    planned: "status-badge--planned",
+    dropped: "status-badge--dropped",
   };
   return classes[status] || "";
 }
