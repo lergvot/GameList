@@ -3,6 +3,7 @@
 
 import { api } from "./api.js";
 import ui from "./ui.js";
+import { ThemeManager } from "./theme.js"; // Добавлен импорт ThemeManager
 
 // ============================================
 // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
@@ -40,6 +41,12 @@ window.app = {
     ui.showDuplicatePopup(state, searchText, currentGameId),
   hideDuplicatePopup: ui.hideDuplicatePopup,
 
+  // Функция для переключения темы (добавлено)
+  toggleTheme: () => window.themeManager?.toggleTheme(),
+
+  // Получение текущей темы (добавлено)
+  getCurrentTheme: () => window.themeManager?.getCurrentTheme(),
+
   // Экспортируем состояние для отладки
   _state: state,
 };
@@ -48,6 +55,9 @@ window.app = {
 // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
 // ============================================
 document.addEventListener("DOMContentLoaded", async () => {
+  // Инициализация менеджера тем ДО настройки обработчиков
+  initializeThemeManager();
+
   // Настройка обработчиков событий
   ui.setupEventHandlers(state);
 
@@ -85,6 +95,32 @@ async function updateAppVersion() {
     }
   } catch (error) {
     console.log("Не удалось получить версию приложения:", error);
+  }
+}
+
+// ============================================
+// УПРАВЛЕНИЕ ТЕМОЙ
+// ============================================
+function initializeThemeManager() {
+  try {
+    // Создаем экземпляр ThemeManager
+    const themeManager = new ThemeManager();
+
+    // Сохраняем в глобальной области для доступа
+    window.themeManager = themeManager;
+
+    // Также добавляем в глобальный объект app
+    window.app.themeManager = themeManager;
+
+    console.log(
+      "ThemeManager инициализирован, текущая тема:",
+      themeManager.getCurrentTheme()
+    );
+  } catch (error) {
+    console.error("Ошибка инициализации ThemeManager:", error);
+    // Фолбэк: применяем темную тему по умолчанию
+    document.body.classList.remove("theme-light");
+    localStorage.setItem("app-theme", "dark");
   }
 }
 

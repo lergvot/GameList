@@ -201,6 +201,52 @@ p {
 }
 
 /* ==========================================================================
+   6.1 КОМПОНЕНТ: HEADER SETTINGS
+   ========================================================================== */
+.app-header__settings {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  z-index: 10;
+}
+
+/* Маленький селект для настроек */
+.select--small {
+  min-width: 140px;
+  font-size: 12px;
+  padding: var(--space-xs) var(--space-sm);
+  padding-right: 28px;
+  background-size: 14px;
+}
+
+/* Иконка темы в кнопке */
+#theme-toggle {
+  font-size: 16px;
+  padding: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  transition: transform 0.2s ease;
+}
+
+#theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* Стиль для активной темы */
+body.theme-light #theme-toggle {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.theme-light #theme-toggle:hover {
+  background: var(--color-hover);
+}
+
+/* ==========================================================================
    7. КОМПОНЕНТ: КНОПКИ (BUTTONS)
    ========================================================================== */
 .btn {
@@ -1460,6 +1506,7 @@ body.modal-open {
 
     --color-accent: #0078d4;
     --color-accent-hover: #106ebe;
+    --color-accent-bg: rgba(0, 120, 212, 0.08);
 
     /* Цвета статусов для светлой темы */
     --color-status-playing: #0f6cbd;
@@ -1517,6 +1564,7 @@ body.modal-open {
 
   --color-accent: #0078d4;
   --color-accent-hover: #106ebe;
+  --color-accent-bg: rgba(0, 120, 212, 0.08);
 
   /* Цвета статусов для светлой темы */
   --color-status-playing: #0f6cbd;
