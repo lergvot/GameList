@@ -677,7 +677,14 @@ function lockForm(lock = true, state) {
 
   if (lock) {
     state.isSubmitting = true;
-    if (overlay) overlay.style.display = "flex";
+    if (overlay) {
+      overlay.style.display = "flex";
+      // Убедимся, что форма видна под overlay
+      const formPanel = document.querySelector(".modal__panel--form");
+      if (formPanel) {
+        formPanel.style.position = "relative";
+      }
+    }
     formInputs.forEach((input) => (input.disabled = true));
   } else {
     state.isSubmitting = false;

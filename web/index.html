@@ -8,6 +8,14 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
   <body>
+    <!-- Overlay для загрузки приложения -->
+    <div id="app-overlay" class="app-overlay" style="display: none">
+      <div class="app-overlay__content">
+        <div class="spinner"></div>
+        <p>Загрузка...</p>
+      </div>
+    </div>
+
     <div class="app">
       <header class="app-header">
         <div class="app-header__title-block">
@@ -240,7 +248,6 @@
                 id="view-copy-title"
                 aria-label="Копировать название"
                 data-tooltip="Копировать название"
-                data-tooltip
               >
                 ⧉
               </button>

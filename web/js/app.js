@@ -3,7 +3,24 @@
 
 import { api } from "./api.js";
 import ui from "./ui.js";
-import { ThemeManager } from "./theme.js"; // Добавлен импорт ThemeManager
+import { ThemeManager } from "./theme.js";
+
+// ============================================
+// ОВЕРЛЕЙ ЗАГРУЗКИ ПРИЛОЖЕНИЯ
+// ============================================
+export function showAppOverlay() {
+  const appOverlay = document.getElementById("app-overlay");
+  if (appOverlay) {
+    appOverlay.style.display = "flex";
+  }
+}
+
+export function hideAppOverlay() {
+  const appOverlay = document.getElementById("app-overlay");
+  if (appOverlay) {
+    appOverlay.style.display = "none";
+  }
+}
 
 // ============================================
 // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
@@ -55,23 +72,30 @@ window.app = {
 // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
 // ============================================
 document.addEventListener("DOMContentLoaded", async () => {
-  // Инициализация менеджера тем ДО настройки обработчиков
-  initializeThemeManager();
+  try {
+    // Инициализация менеджера тем ДО настройки обработчиков
+    initializeThemeManager();
 
-  // Настройка обработчиков событий
-  ui.setupEventHandlers(state);
+    // Настройка обработчиков событий
+    ui.setupEventHandlers(state);
 
-  // Загрузка начальных данных
-  await loadAndRender(state);
+    // Загрузка начальных данных
+    await loadAndRender(state);
 
-  // Загрузка версии приложения
-  await updateAppVersion();
+    // Загрузка версии приложения
+    await updateAppVersion();
+  } catch (error) {
+    console.error("Ошибка инициализации приложения:", error);
+    alert("Не удалось инициализировать приложение");
+  }
 });
 
 // ============================================
 // ОСНОВНЫЕ ФУНКЦИИ ПРИЛОЖЕНИЯ
 // ============================================
 async function loadAndRender(state) {
+  showAppOverlay();
+
   try {
     state.allGames = await api.loadGames();
     ui.updateStats(await api.getStatistics());
@@ -79,6 +103,8 @@ async function loadAndRender(state) {
   } catch (error) {
     console.error("Ошибка загрузки данных:", error);
     alert("Не удалось загрузить список игр");
+  } finally {
+    setTimeout(() => hideAppOverlay(), 300);
   }
 }
 
