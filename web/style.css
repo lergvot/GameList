@@ -26,15 +26,15 @@
   --color-accent-hover: #106ebe;
   --color-accent-bg: rgba(0, 120, 212, 0.08);
 
-  /* Status colors */
+  /* Status colors - БОЛЕЕ НЕЙТРАЛЬНЫЕ */
   --color-status-playing: #4e94ce;
   --color-status-playing-bg: rgba(78, 148, 206, 0.15);
-  --color-status-completed: #107c10;
-  --color-status-completed-bg: rgba(16, 124, 16, 0.15);
+  --color-status-completed: #2e8b57; /* Более нейтральный зеленый */
+  --color-status-completed-bg: rgba(46, 139, 87, 0.15);
   --color-status-planned: #d7ba7d;
   --color-status-planned-bg: rgba(215, 186, 125, 0.12);
-  --color-status-dropped: #d13438;
-  --color-status-dropped-bg: rgba(209, 52, 56, 0.15);
+  --color-status-dropped: #c44d56; /* Более нейтральный красный */
+  --color-status-dropped-bg: rgba(196, 77, 86, 0.15);
 
   /* State colors */
   --color-hover: rgba(255, 255, 255, 0.07);
@@ -234,11 +234,11 @@ p {
   padding: 6px;
   min-width: 32px;
   min-height: 32px;
-  transition: transform 0.2s ease;
+  /* УБРАНО УВЕЛИЧЕНИЕ ПРИ НАВЕДЕНИИ */
 }
 
 #theme-toggle:hover {
-  transform: scale(1.1);
+  background: var(--color-hover);
 }
 
 body.theme-light #theme-toggle {
@@ -288,6 +288,19 @@ body.theme-light #theme-toggle {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* УБИРАЕМ СИНЮЮ ОБВОДКУ ПРИ ФОКУСЕ */
+.btn:focus,
+.search:focus,
+.select:focus,
+.form__input:focus,
+.form__select:focus,
+.form__textarea:focus,
+.game-card__copy:focus,
+.view__copy:focus {
+  outline: none;
+  border-color: var(--color-border-hover);
 }
 
 /* Button variants */
@@ -368,7 +381,7 @@ body.theme-light #theme-toggle {
 .form__input:focus,
 .form__select:focus,
 .form__textarea:focus {
-  border-color: var(--color-accent);
+  border-color: var(--color-border-hover); /* ИЗМЕНЕНО: убрана синяя обводка */
   outline: none;
 }
 
@@ -506,7 +519,7 @@ body.theme-light #theme-toggle {
 }
 
 .search:focus {
-  border-color: var(--color-accent);
+  border-color: var(--color-border-hover); /* ИЗМЕНЕНО: убрана синяя обводка */
   outline: none;
 }
 
@@ -540,7 +553,7 @@ body.theme-light #theme-toggle {
 }
 
 .select:focus {
-  border-color: var(--color-accent);
+  border-color: var(--color-border-hover); /* ИЗМЕНЕНО: убрана синяя обводка */
   outline: none;
 }
 
@@ -647,9 +660,9 @@ body.theme-light #theme-toggle {
 }
 
 .status-badge--completed {
-  color: var(--color-status-completed);
+  color: var(--color-status-completed); /* БОЛЕЕ НЕЙТРАЛЬНЫЙ ЗЕЛЕНЫЙ */
   background: var(--color-status-completed-bg);
-  border-color: rgba(16, 124, 16, 0.3);
+  border-color: rgba(46, 139, 87, 0.3);
 }
 
 .status-badge--planned {
@@ -659,9 +672,9 @@ body.theme-light #theme-toggle {
 }
 
 .status-badge--dropped {
-  color: var(--color-status-dropped);
+  color: var(--color-status-dropped); /* БОЛЕЕ НЕЙТРАЛЬНЫЙ КРАСНЫЙ */
   background: var(--color-status-dropped-bg);
-  border-color: rgba(209, 52, 56, 0.3);
+  border-color: rgba(196, 77, 86, 0.3);
 }
 
 /* ==========================================================================
@@ -1038,6 +1051,13 @@ body.theme-light #theme-toggle {
   transition: all 0.15s ease;
   width: 100%;
   padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+
+.upload-area:hover {
+  background: var(--color-hover);
+  border-color: var(--color-border-hover);
 }
 
 .upload-area__preview {
@@ -1250,15 +1270,12 @@ body.theme-light #theme-toggle {
 }
 
 /* ==========================================================================
-   16. COMPONENT: DUPLICATE POPUP
+   16. COMPONENT: DUPLICATE POPUP (ИЗМЕНЕНО - ВСПЛЫВАЮЩИЙ ЭЛЕМЕНТ)
    ========================================================================== */
 
 .duplicate-popup {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  position: fixed; /* ИЗМЕНЕНО: fixed вместо absolute */
+  z-index: 1100; /* Выше чем модальные окна */
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -1266,12 +1283,12 @@ body.theme-light #theme-toggle {
   overflow: hidden;
   max-height: 250px;
   display: none;
-  margin-top: 5px;
+  animation: slideDown 0.2s ease;
+  pointer-events: auto; /* Разрешаем взаимодействие */
 }
 
 .duplicate-popup--active {
   display: block;
-  animation: slideDown 0.2s ease;
 }
 
 @keyframes slideDown {
@@ -1299,7 +1316,7 @@ body.theme-light #theme-toggle {
   justify-content: space-between;
   padding: var(--space-sm) var(--space-md);
   cursor: default;
-  pointer-events: none;
+  pointer-events: auto;
   user-select: none;
   transition: background-color 0.15s ease;
   border-left: 4px solid transparent;
@@ -1483,12 +1500,12 @@ body.modal-open {
     /* Status colors for light theme */
     --color-status-playing: #0f6cbd;
     --color-status-playing-bg: rgba(15, 108, 189, 0.1);
-    --color-status-completed: #107c10;
-    --color-status-completed-bg: rgba(16, 124, 16, 0.1);
+    --color-status-completed: #2e8b57; /* Более нейтральный зеленый */
+    --color-status-completed-bg: rgba(46, 139, 87, 0.1);
     --color-status-planned: #8a6800;
     --color-status-planned-bg: rgba(138, 104, 0, 0.08);
-    --color-status-dropped: #c50f1f;
-    --color-status-dropped-bg: rgba(197, 15, 31, 0.1);
+    --color-status-dropped: #c44d56; /* Более нейтральный красный */
+    --color-status-dropped-bg: rgba(196, 77, 86, 0.1);
 
     --color-hover: rgba(0, 0, 0, 0.05);
     --color-active: rgba(0, 0, 0, 0.08);
@@ -1541,12 +1558,12 @@ body.modal-open {
   /* Status colors for light theme */
   --color-status-playing: #0f6cbd;
   --color-status-playing-bg: rgba(15, 108, 189, 0.1);
-  --color-status-completed: #107c10;
-  --color-status-completed-bg: rgba(16, 124, 16, 0.1);
+  --color-status-completed: #2e8b57;
+  --color-status-completed-bg: rgba(46, 139, 87, 0.1);
   --color-status-planned: #8a6800;
   --color-status-planned-bg: rgba(138, 104, 0, 0.08);
-  --color-status-dropped: #c50f1f;
-  --color-status-dropped-bg: rgba(197, 15, 31, 0.1);
+  --color-status-dropped: #c44d56;
+  --color-status-dropped-bg: rgba(196, 77, 86, 0.1);
 
   --color-hover: rgba(0, 0, 0, 0.05);
   --color-active: rgba(0, 0, 0, 0.08);

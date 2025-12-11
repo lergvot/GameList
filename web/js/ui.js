@@ -461,7 +461,7 @@ export function updateStats(stats) {
 let duplicatePopupTimeout = null;
 
 export function showDuplicatePopup(state, searchText, currentGameId = null) {
-  if (!duplicatePopup) return;
+  if (!duplicatePopup || !titleInput) return;
 
   // Очищаем предыдущий таймаут
   clearTimeout(duplicatePopupTimeout);
@@ -510,11 +510,17 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
 
   duplicatePopup.appendChild(list);
 
+  // Позиционирование попапа относительно поля ввода
+  const titleRect = titleInput.getBoundingClientRect();
+  const popupWidth = 320; // Фиксированная ширина попапа
+
+  duplicatePopup.style.position = "fixed";
+  duplicatePopup.style.top = `${titleRect.bottom + window.scrollY + 5}px`;
+  duplicatePopup.style.left = `${titleRect.left + window.scrollX}px`;
+  duplicatePopup.style.width = `${Math.max(titleRect.width, popupWidth)}px`;
+
   // Показываем попап
   duplicatePopup.classList.add("duplicate-popup--active");
-
-  // Убираем все инлайн-стили, чтобы работали CSS стили
-  duplicatePopup.style = "";
 
   // Устанавливаем таймаут для автоматического скрытия
   duplicatePopupTimeout = setTimeout(() => {
