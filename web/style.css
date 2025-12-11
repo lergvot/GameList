@@ -242,9 +242,9 @@ p {
 }
 
 body.theme-light #theme-toggle {
-  background: var(--color-accent-bg);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 .theme-light #theme-toggle:hover {
@@ -1059,7 +1059,9 @@ body.theme-light #theme-toggle {
   width: 100%;
   padding: var(--space-md);
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
+  border: 1px solid transparent; /* Убрать transparent */
+  background: var(--color-surface); /* Добавить */
+  border: 1px solid var(--color-border); /* Добавить */
 }
 
 .upload-area:hover {
@@ -1075,7 +1077,6 @@ body.theme-light #theme-toggle {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-card);
 }
 
 .upload-area__preview img {
@@ -1604,14 +1605,26 @@ body.modal-open {
 }
 
 .theme-light .upload-area {
-  background: var(--color-card);
+  background: var(--color-surface);
   border-color: var(--color-border);
+}
+.theme-light .upload-area:hover {
+  background: var(--color-hover);
+  border-color: var(--color-border-hover);
 }
 
 .theme-light .modal__overlay {
   background: rgba(255, 255, 255, 0.7);
 }
 
+.theme-light .app-overlay {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.theme-light .stats__item--active[data-filter="all"] {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--color-text-primary);
+}
 .theme-light .app-overlay {
   background: rgba(255, 255, 255, 0.8);
 }
