@@ -45,7 +45,7 @@ function renderGameCards(games, helpers) {
         rating:
           game.rating && Number(game.rating) > 0
             ? Number(game.rating).toFixed(1)
-            : "0",
+            : "—",
         status: game.status || "planned",
         screenshot: game.screenshot_data || "",
         createdDate: formatDateTime(game.created_at, true),
@@ -64,13 +64,10 @@ function renderGameCards(games, helpers) {
                onclick="app.showView(${gameJson})">
         <div class="game-card__left">
           <div class="game-card__rating">
-            ${escapedGame.rating} ★
-          </div>
-          <div class="game-card__image">
             ${
-              escapedGame.screenshot
-                ? `<img src="${escapedGame.screenshot}" alt="${escapedGame.title}" loading="lazy">`
-                : '<div class="game-card__image-placeholder">Нет изображения</div>'
+              escapedGame.rating !== "0" && escapedGame.rating !== "—"
+                ? `${escapedGame.rating} ★`
+                : "—"
             }
           </div>
         </div>
