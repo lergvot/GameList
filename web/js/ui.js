@@ -813,4 +813,5 @@ export default {
   showDuplicatePopup,
   hideDuplicatePopup,
   filterAndDisplay,
+  showToast,
 };

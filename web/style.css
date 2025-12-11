@@ -792,11 +792,13 @@ body.theme-light #theme-toggle {
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   padding: 2px;
   border-radius: var(--radius-xs);
   transition: all 0.15s ease;
   flex-shrink: 0;
+  height: 20px;
+  width: 20px;
 }
 
 .game-card__copy:hover {
@@ -954,8 +956,8 @@ body.theme-light #theme-toggle {
 
 .modal__close {
   position: absolute;
-  right: var(--space-lg);
-  top: var(--space-lg);
+  right: var(--space-xs);
+  top: var(--space-xs);
   background: transparent;
   border: none;
   color: var(--color-text-muted);
@@ -965,6 +967,11 @@ body.theme-light #theme-toggle {
   padding: var(--space-xs);
   border-radius: var(--radius-sm);
   transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  width: 26px;
 }
 
 .modal__close:hover {
@@ -1197,6 +1204,10 @@ body.theme-light #theme-toggle {
   border-radius: var(--radius-sm);
   margin-top: 2px;
   transition: all 0.15s ease;
+  display: flex;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
 }
 
 .view__copy:hover {
@@ -1402,32 +1413,6 @@ body.modal-open {
   }
 }
 
-/* Toast notifications */
-.toast {
-  position: fixed;
-  top: 18px;
-  right: 18px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: var(--space-md) var(--space-lg);
-  border-radius: var(--radius-md);
-  color: white;
-  z-index: 2000;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
-  max-width: 300px;
-  word-wrap: break-word;
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.3s ease;
-}
-
-.toast--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* ==========================================================================
    19. APP OVERLAY (для загрузки приложения)
    ========================================================================== */
@@ -1629,4 +1614,52 @@ body.modal-open {
 
 .theme-light .app-overlay {
   background: rgba(255, 255, 255, 0.8);
+}
+
+/* ==========================================================================
+   23. TOAST NOTIFICATIONS WITH THEME SUPPORT
+   ========================================================================== */
+
+/* Темная тема по умолчанию */
+.toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  z-index: 2000;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  max-width: 300px;
+  word-wrap: break-word;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+}
+
+.toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Светлая тема для Toast */
+.theme-light .toast {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Для системной светлой темы */
+@media (prefers-color-scheme: light) {
+  .toast {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
 }

@@ -102,7 +102,7 @@ async function loadAndRender(state) {
     filterAndDisplay(state);
   } catch (error) {
     console.error("Ошибка загрузки данных:", error);
-    alert("Не удалось загрузить список игр");
+    ui.showToast("Не удалось загрузить список игр");
   } finally {
     setTimeout(() => hideAppOverlay(), 300);
   }
