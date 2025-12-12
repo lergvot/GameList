@@ -105,12 +105,12 @@ function renderGameCards(games, helpers) {
           <div class="game-card__meta">
             <div class="game-card__dates">
               <span class="game-card__date" data-tooltip="${
-                escapedGame.createdFull
+                "Создано: " + escapedGame.createdFull
               }">
                 Создано: ${escapedGame.createdDate}
               </span>
               <span class="game-card__date" data-tooltip="${
-                escapedGame.updatedFull
+                "Обновлено: " + escapedGame.updatedFull
               }">
                 Обновлено: ${escapedGame.updatedDate}
               </span>
