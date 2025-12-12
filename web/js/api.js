@@ -37,24 +37,42 @@ export const api = {
 // ============================================
 // УТИЛИТЫ ФОРМАТИРОВАНИЯ
 // ============================================
+/**
+ * Форматирует дату и время из SQLite (UTC) в локальное время
+ * @param {string} dateString - Строка с датой в формате "YYYY-MM-DD HH:MM:SS" (UTC)
+ * @param {boolean} returnOnlyDate - Возвращать только дату
+ * @returns {string} Отформатированная строка в локальном времени
+ */
 export function formatDateTime(dateString, returnOnlyDate = false) {
   if (!dateString) return "—";
-  const date = new Date(dateString);
-  if (isNaN(date)) return "—";
 
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
+  try {
+    // Простое преобразование: SQLite формат -> ISO с UTC
+    const date = new Date(
+      dateString.includes(" ")
+        ? dateString.replace(" ", "T") + "Z" // SQLite формат: добавляем Z для UTC
+        : dateString // Уже в ISO формате
+    );
 
-  if (returnOnlyDate) {
-    return `${day}.${month}.${year}`;
+    if (isNaN(date.getTime())) return "—";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    if (returnOnlyDate) {
+      return `${day}.${month}.${year}`;
+    }
+
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    return `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
+  } catch (error) {
+    console.error("Ошибка форматирования даты:", error, dateString);
+    return "—";
   }
-
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-
-  return `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
 }
 
 export function statusClassFor(status) {
