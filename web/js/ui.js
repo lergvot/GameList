@@ -104,16 +104,19 @@ function renderGameCards(games, helpers) {
           
           <div class="game-card__meta">
             <div class="game-card__dates">
-              <span class="game-card__date" data-tooltip="${
+              <div class="game-card__date" data-tooltip="${
                 "Создано: " + escapedGame.createdFull
               }">
-                Создано: ${escapedGame.createdDate}
-              </span>
-              <span class="game-card__date" data-tooltip="${
+                <span>Создано:</span>
+                <span>${escapedGame.createdDate}</span>
+              </div>
+
+              <div class="game-card__date" data-tooltip="${
                 "Обновлено: " + escapedGame.updatedFull
               }">
-                Обновлено: ${escapedGame.updatedDate}
-              </span>
+                <span>Обновлено:</span>
+                <span>${escapedGame.updatedDate}</span>
+              </div>
             </div>
             
             <div class="game-card__actions">
@@ -347,13 +350,17 @@ export function showView(game) {
   const createdEl = document.getElementById("view-created-at");
   const updatedEl = document.getElementById("view-updated-at");
 
-  createdEl.textContent = `Создано: ${formatDateTime(game.created_at, false)}`;
-  createdEl.title = formatDateTime(game.created_at, false);
-  updatedEl.textContent = `Обновлено: ${formatDateTime(
-    game.updated_at,
-    false
-  )}`;
-  updatedEl.title = formatDateTime(game.updated_at, false);
+  const createdSpans = createdEl.querySelectorAll("span");
+  const updatedSpans = updatedEl.querySelectorAll("span");
+
+  if (createdSpans.length >= 2) {
+    createdSpans[1].textContent = formatDateTime(game.created_at, false);
+    createdEl.title = formatDateTime(game.created_at, false);
+  }
+  if (updatedSpans.length >= 2) {
+    updatedSpans[1].textContent = formatDateTime(game.updated_at, false);
+    updatedEl.title = formatDateTime(game.updated_at, false);
+  }
 
   document.getElementById("view-edit").onclick = () => {
     closeView();
