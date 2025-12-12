@@ -1,18 +1,14 @@
 // web/ui.js
-// Все UI операции: рендеринг, формы, модалки, обработчики
-
 import {
   api,
   escapeHtml,
   formatDateTime,
   statusClassFor,
   findSimilarGames,
-  getStatusTextRu,
+  getStatusText,
 } from "./api.js";
+import { t } from "./localisation.js";
 
-// ============================================
-// ДОМ ЭЛЕМЕНТЫ (будут кэшированы при инициализации)
-// ============================================
 let gamesListEl,
   modal,
   form,
@@ -25,17 +21,13 @@ let gamesListEl,
   duplicatePopup,
   sortSelect;
 
-// ============================================
-// ШАБЛОНЫ КАРТОЧЕК
-// ============================================
 function renderGameCards(games, helpers) {
   if (!games.length) {
-    return '<div class="empty">Список пуст</div>';
+    return `<div class="empty">${t("empty_list")}</div>`;
   }
 
   return games
     .map((game) => {
-      // Безопасное экранирование всех строк
       const escapedGame = {
         id: escapeHtml(game.id),
         title: escapeHtml(game.title || ""),
@@ -53,10 +45,9 @@ function renderGameCards(games, helpers) {
         updatedDate: formatDateTime(game.updated_at, true),
         updatedFull: formatDateTime(game.updated_at, false),
         statusClass: `status-badge--${game.status}`,
-        statusText: getStatusTextRu(game.status).toUpperCase(),
+        statusText: t(`status_${game.status}_display`),
       };
 
-      // JSON.stringify для передачи объекта в onclick
       const gameJson = JSON.stringify(game).replace(/"/g, "&quot;");
 
       return `
@@ -82,15 +73,15 @@ function renderGameCards(games, helpers) {
                       /'/g,
                       "\\'"
                     )}')"
-                    data-tooltip="Копировать название">
+                    data-tooltip="${t("copy_title_tooltip")}">
               ⧉
             </button>
           </div>
           
           <div class="game-card__content">
-            <div class="game-card__version">Версия: ${
-              escapedGame.version || "—"
-            }</div>
+            <div class="game-card__version">${t("version_label")}: ${
+        escapedGame.version || "—"
+      }</div>
             <div class="game-card__review">${escapedGame.review}</div>
           </div>
         </div>
@@ -105,16 +96,16 @@ function renderGameCards(games, helpers) {
           <div class="game-card__meta">
             <div class="game-card__dates">
               <div class="game-card__date" data-tooltip="${
-                "Создано: " + escapedGame.createdFull
+                t("created_label") + ": " + escapedGame.createdFull
               }">
-                <span>Создано:</span>
+                <span>${t("created_label")}:</span>
                 <span>${escapedGame.createdDate}</span>
               </div>
 
               <div class="game-card__date" data-tooltip="${
-                "Обновлено: " + escapedGame.updatedFull
+                t("updated_label") + ": " + escapedGame.updatedFull
               }">
-                <span>Обновлено:</span>
+                <span>${t("updated_label")}:</span>
                 <span>${escapedGame.updatedDate}</span>
               </div>
             </div>
@@ -128,8 +119,8 @@ function renderGameCards(games, helpers) {
                         /'/g,
                         "\\'"
                       )}')"
-                      aria-label="Копировать ссылку"
-                      data-tooltip="Копировать ссылку">
+                      aria-label="${t("copy_link_tooltip")}"
+                      data-tooltip="${t("copy_link_tooltip")}">
                       🡵
                     </button>
                   `
@@ -137,16 +128,16 @@ function renderGameCards(games, helpers) {
               }
               <button class="btn btn--icon" 
                 onclick="event.stopPropagation(); app.openForm(${gameJson})"
-                aria-label="Редактировать"
-                data-tooltip="Редактировать">
+                aria-label="${t("edit_tooltip")}"
+                data-tooltip="${t("edit_tooltip")}">
                 ✎
               </button>
               <button class="btn btn--icon btn--danger" 
                 onclick="event.stopPropagation(); app.openConfirmModal(${
                   game.id
                 })"
-                aria-label="Удалить"
-                data-tooltip="Удалить">
+                aria-label="${t("delete_tooltip")}"
+                data-tooltip="${t("delete_tooltip")}">
                 🗑
               </button>
             </div>
@@ -158,14 +149,11 @@ function renderGameCards(games, helpers) {
     .join("");
 }
 
-// ============================================
-// РЕНДЕРИНГ И ФИЛЬТРАЦИЯ
-// ============================================
 export function renderGameList(games, state) {
   if (!gamesListEl) return;
 
   if (!games.length) {
-    gamesListEl.innerHTML = '<div class="empty">Список пуст</div>';
+    gamesListEl.innerHTML = `<div class="empty">${t("empty_list")}</div>`;
     return;
   }
 
@@ -195,17 +183,14 @@ export function filterGames(state) {
 export function sortGames(games, sortType) {
   if (!games.length) return games;
 
-  // Создаем копию массива для сортировки
   const sorted = [...games];
 
   switch (sortType) {
     case "rating-desc":
-      // По оценке (убывание)
       sorted.sort((a, b) => {
         const ratingA = parseFloat(a.rating) || 0;
         const ratingB = parseFloat(b.rating) || 0;
 
-        // Сначала игры с рейтингом, затем без
         if (ratingA === 0 && ratingB === 0) return 0;
         if (ratingA === 0) return 1;
         if (ratingB === 0) return -1;
@@ -215,7 +200,6 @@ export function sortGames(games, sortType) {
       break;
 
     case "title-asc":
-      // По названию (А-Я)
       sorted.sort((a, b) => {
         const titleA = (a.title || "").toLowerCase();
         const titleB = (b.title || "").toLowerCase();
@@ -224,7 +208,6 @@ export function sortGames(games, sortType) {
       break;
 
     case "added-desc":
-      // По дате добавления (новые сверху)
       sorted.sort((a, b) => {
         const dateA = new Date(a.created_at || "1970-01-01").getTime();
         const dateB = new Date(b.created_at || "1970-01-01").getTime();
@@ -233,7 +216,7 @@ export function sortGames(games, sortType) {
       break;
 
     case "added-asc":
-    default: // По умолчанию - по дате обновления (новые сверху)
+    default:
       sorted.sort((a, b) => {
         const dateA = new Date(
           a.updated_at || a.created_at || "1970-01-01"
@@ -249,21 +232,13 @@ export function sortGames(games, sortType) {
   return sorted;
 }
 
-// ============================================
-// ФОРМЫ И МОДАЛКИ
-// ============================================
 export function openForm(state, game = null) {
   if (!modal) return;
 
   state.editingGame = game;
-
-  // Убедимся, что форма разблокирована
   lockForm(false, state);
-
-  // Скрываем попап при открытии формы
   hideDuplicatePopup();
 
-  // Заполняем форму
   document.getElementById("game-id").value = game?.id || "";
   const titleInput = document.getElementById("title");
   titleInput.value = game?.title || "";
@@ -276,7 +251,6 @@ export function openForm(state, game = null) {
 
   updateStatusSelectStyle();
 
-  // Сброс скриншота
   state.unsavedScreenshotData = null;
   screenshotInput.value = "";
   const isScreenshotEmpty = !game?.screenshot_data;
@@ -289,13 +263,12 @@ export function openForm(state, game = null) {
     : "";
   removeScreenshotBtn.classList.toggle("hidden", isScreenshotEmpty);
 
-  // Обновляем заголовок и кнопку
   document.getElementById("modal-title").textContent = game
-    ? "Редактировать игру"
-    : "Добавить игру";
+    ? t("edit_game_modal_title")
+    : t("add_game_modal_title");
   document.getElementById("save-btn").textContent = game
-    ? "Обновить"
-    : "Добавить";
+    ? t("update_button")
+    : t("save_button");
 
   modal.setAttribute("aria-hidden", "false");
   updateBodyScroll();
@@ -308,7 +281,6 @@ export function closeForm(state) {
   state.editingGame = null;
   state.unsavedScreenshotData = null;
 
-  // Сбрасываем состояние формы
   setTimeout(() => {
     lockForm(false, state);
     hideDuplicatePopup();
@@ -323,7 +295,6 @@ export function showView(game) {
 
   const viewTitleEl = document.getElementById("view-title");
   viewTitleEl.textContent = game.title || "—";
-  // Убираем браузерный тултип, оставляем только кастомный
   viewTitleEl.title = "";
   viewTitleEl.setAttribute("data-tooltip", game.title || "");
 
@@ -331,12 +302,13 @@ export function showView(game) {
     game.rating && Number(game.rating) > 0
       ? `★ ${Number(game.rating).toFixed(1)}`
       : "—";
-  document.getElementById("view-version").textContent = `Версия: ${
-    game.version || "—"
-  }`;
+
+  document.getElementById("view-version").textContent = `${t(
+    "version_label"
+  )}: ${game.version || "—"}`;
 
   const statusEl = document.getElementById("view-status");
-  statusEl.textContent = getStatusTextRu(game.status).toUpperCase();
+  statusEl.textContent = getStatusText(game.status).toUpperCase();
   statusEl.className = `status-badge status-badge--${game.status}`;
 
   document.getElementById("view-review").textContent = game.review || "—";
@@ -345,7 +317,7 @@ export function showView(game) {
     ? `<img src="${game.screenshot_data}" alt="${
         game.title || "screenshot"
       }" loading="lazy">`
-    : '<div class="view__image-placeholder">Нет изображения</div>';
+    : `<div class="view__image-placeholder">${t("no_image")}</div>`;
 
   const createdEl = document.getElementById("view-created-at");
   const updatedEl = document.getElementById("view-updated-at");
@@ -354,10 +326,12 @@ export function showView(game) {
   const updatedSpans = updatedEl.querySelectorAll("span");
 
   if (createdSpans.length >= 2) {
+    createdSpans[0].textContent = `${t("created_label")}:`;
     createdSpans[1].textContent = formatDateTime(game.created_at, false);
     createdEl.title = formatDateTime(game.created_at, false);
   }
   if (updatedSpans.length >= 2) {
+    updatedSpans[0].textContent = `${t("updated_label")}:`;
     updatedSpans[1].textContent = formatDateTime(game.updated_at, false);
     updatedEl.title = formatDateTime(game.updated_at, false);
   }
@@ -385,9 +359,6 @@ export function closeView() {
   }
 }
 
-// ============================================
-// ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ
-// ============================================
 export function openConfirmModal(state, gameId) {
   state.selectedToDelete = gameId;
   const confirmModal = document.getElementById("confirm-modal");
@@ -415,22 +386,19 @@ export async function onConfirmDelete(state) {
       await app.loadAndRender(state);
       closeConfirmModal(state);
       closeView();
-      showToast("Игра удалена");
+      showToast(t("game_deleted"));
     }
   } catch (e) {
     console.error(e);
-    alert("Ошибка удаления");
+    alert(t("delete_error"));
   }
 }
 
-// ============================================
-// УТИЛИТЫ UI
-// ============================================
 export function copyToClipboard(text) {
   if (!text) return;
 
   navigator.clipboard.writeText(text).then(() => {
-    showToast("Скопировано в буфер");
+    showToast(t("copied_to_clipboard"));
   });
 }
 
@@ -459,37 +427,29 @@ export function updateStats(stats) {
   if (droppedEl) droppedEl.textContent = stats.dropped || 0;
 }
 
-// ============================================
-// ДУБЛИКАТЫ И ПОПАПЫ
-// ============================================
 let duplicatePopupTimeout = null;
 
 export function showDuplicatePopup(state, searchText, currentGameId = null) {
   if (!duplicatePopup || !titleInput) return;
 
-  // Очищаем предыдущий таймаут
   clearTimeout(duplicatePopupTimeout);
 
-  // Если поле пустое или слишком короткое - скрываем попап
   if (!searchText || searchText.trim().length < 2) {
     hideDuplicatePopup();
     return;
   }
 
-  // Ищем похожие игры
   const similarGames = findSimilarGames(
     searchText,
     state.allGames,
     currentGameId
   );
 
-  // Если нет похожих игр - скрываем попап
   if (!similarGames || similarGames.length === 0) {
     hideDuplicatePopup();
     return;
   }
 
-  // Обновляем содержимое попапа
   duplicatePopup.innerHTML = "";
 
   const list = document.createElement("ul");
@@ -500,11 +460,11 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
     listItem.className = "duplicate-popup__item";
 
     const statusClass = `status-badge--${game.status}`;
-    const statusText = getStatusTextRu(game.status).toUpperCase();
+    const statusText = getStatusText(game.status).toUpperCase();
 
     listItem.innerHTML = `
       <span class="duplicate-popup__name">${
-        game.title || game.name || "Без названия"
+        game.title || game.name || t("no_title")
       }</span>
       <span class="status-badge ${statusClass}">${statusText}</span>
     `;
@@ -514,19 +474,16 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
 
   duplicatePopup.appendChild(list);
 
-  // Позиционирование попапа относительно поля ввода
   const titleRect = titleInput.getBoundingClientRect();
-  const popupWidth = 320; // Фиксированная ширина попапа
+  const popupWidth = 320;
 
   duplicatePopup.style.position = "fixed";
   duplicatePopup.style.top = `${titleRect.bottom + window.scrollY + 5}px`;
   duplicatePopup.style.left = `${titleRect.left + window.scrollX}px`;
   duplicatePopup.style.width = `${Math.max(titleRect.width, popupWidth)}px`;
 
-  // Показываем попап
   duplicatePopup.classList.add("duplicate-popup--active");
 
-  // Устанавливаем таймаут для автоматического скрытия
   duplicatePopupTimeout = setTimeout(() => {
     if (
       !duplicatePopup.matches(":hover") &&
@@ -546,11 +503,7 @@ export function hideDuplicatePopup() {
   clearTimeout(duplicatePopupTimeout);
 }
 
-// ============================================
-// ОБРАБОТЧИКИ СОБЫТИЙ
-// ============================================
 export function setupEventHandlers(state) {
-  // Кэшируем DOM элементы
   gamesListEl = document.getElementById("games-list");
   modal = document.getElementById("game-modal");
   form = document.getElementById("game-form");
@@ -563,7 +516,6 @@ export function setupEventHandlers(state) {
   duplicatePopup = document.getElementById("duplicate-popup");
   sortSelect = document.getElementById("sort-select");
 
-  // Основные обработчики
   document
     .getElementById("add-game-btn")
     .addEventListener("click", () => openForm(state));
@@ -594,7 +546,6 @@ export function setupEventHandlers(state) {
     .getElementById("confirm-delete")
     .addEventListener("click", () => onConfirmDelete(state));
 
-  // Поиск
   searchInput.addEventListener("input", (e) => {
     state.currentSearch = e.target.value.trim().toLowerCase();
     filterAndDisplay(state);
@@ -602,7 +553,6 @@ export function setupEventHandlers(state) {
 
   statusSelect.addEventListener("change", updateStatusSelectStyle);
 
-  // Фильтры статистики
   document.querySelectorAll(".stats__item").forEach((btn) => {
     btn.addEventListener("click", () => {
       const filter = btn.dataset.filter;
@@ -612,11 +562,9 @@ export function setupEventHandlers(state) {
     });
   });
 
-  // Обработчики для поля ввода названия
   if (titleInput) {
     let inputTimeout;
 
-    // Поиск при вводе (с задержкой)
     titleInput.addEventListener("input", (e) => {
       clearTimeout(inputTimeout);
       inputTimeout = setTimeout(() => {
@@ -625,13 +573,11 @@ export function setupEventHandlers(state) {
       }, 300);
     });
 
-    // Показ при фокусе
     titleInput.addEventListener("focus", (e) => {
       const gameId = document.getElementById("game-id").value;
       showDuplicatePopup(state, e.target.value, gameId || null);
     });
 
-    // Скрытие при потере фокуса
     titleInput.addEventListener("blur", () => {
       setTimeout(() => {
         if (duplicatePopup && !duplicatePopup.matches(":hover")) {
@@ -640,7 +586,6 @@ export function setupEventHandlers(state) {
       }, 200);
     });
 
-    // Скрытие при нажатии Esc
     titleInput.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         hideDuplicatePopup();
@@ -648,7 +593,6 @@ export function setupEventHandlers(state) {
     });
   }
 
-  // Скрытие попапа при клике вне его
   document.addEventListener("click", (e) => {
     if (
       duplicatePopup &&
@@ -660,7 +604,6 @@ export function setupEventHandlers(state) {
     }
   });
 
-  // Обработчик сортировки
   if (sortSelect) {
     sortSelect.value = state.currentSort;
     sortSelect.addEventListener("change", (e) => {
@@ -670,9 +613,6 @@ export function setupEventHandlers(state) {
   }
 }
 
-// ============================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================
 function lockForm(lock = true, state) {
   const overlay = document.getElementById("form-overlay");
   const formInputs = document.querySelectorAll(
@@ -683,7 +623,6 @@ function lockForm(lock = true, state) {
     state.isSubmitting = true;
     if (overlay) {
       overlay.style.display = "flex";
-      // Убедимся, что форма видна под overlay
       const formPanel = document.querySelector(".modal__panel--form");
       if (formPanel) {
         formPanel.style.position = "relative";
@@ -700,7 +639,6 @@ function lockForm(lock = true, state) {
 async function onSubmit(e, state) {
   e.preventDefault();
 
-  // Защита от повторной отправки
   if (state.isSubmitting) {
     console.log("Форма уже отправляется...");
     return;
@@ -716,13 +654,17 @@ async function onSubmit(e, state) {
   };
 
   if (!payload.title) {
-    alert("Название обязательно");
+    alert(t("title_required"));
     return;
   }
 
   try {
-    // Блокируем форму с overlay
     lockForm(true, state);
+
+    const overlayText = document.querySelector("#form-overlay p");
+    if (overlayText) {
+      overlayText.textContent = t("saving");
+    }
 
     const gameId = document.getElementById("game-id").value;
     const screenshotArg =
@@ -737,14 +679,13 @@ async function onSubmit(e, state) {
       closeForm(state);
       showToast(
         gameId
-          ? `Игра ${payload.title} обновлена`
-          : `Игра ${payload.title} добавлена`
+          ? t("game_updated", { title: payload.title })
+          : t("game_added", { title: payload.title })
       );
     }
   } catch (err) {
     console.error(err);
-    alert("Ошибка сохранения");
-    // При ошибке разблокируем форму, но не закрываем
+    alert(t("save_error"));
     lockForm(false, state);
   }
 }
@@ -775,7 +716,6 @@ function updateStatusSelectStyle() {
   if (!statusSelect) return;
   const value = statusSelect.value;
 
-  // Удаляем все возможные классы статусов
   statusSelect.classList.remove(
     "form__select--playing",
     "form__select--planned",
@@ -783,7 +723,6 @@ function updateStatusSelectStyle() {
     "form__select--dropped"
   );
 
-  // Добавляем нужный класс
   statusSelect.classList.add(`form__select--${value}`);
 }
 
@@ -800,7 +739,6 @@ function updateBodyScroll() {
   document.body.classList.toggle("modal-open", isModalOpen);
 }
 
-// Экспортируем функцию для фильтрации и отображения (используется в app.js)
 export function filterAndDisplay(state) {
   const filtered = filterGames(state);
   const sorted = sortGames(filtered, state.currentSort);

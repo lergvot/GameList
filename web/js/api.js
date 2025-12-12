@@ -1,9 +1,6 @@
 // web/js/api.js
-// Взаимодействие с бекендом (Eel) и утилиты форматирования
+import { t } from "./localisation.js";
 
-// ============================================
-// API ВЫЗОВЫ К PYTHON (EEL)
-// ============================================
 export const api = {
   async loadGames() {
     return (await eel.load_games()()) || [];
@@ -34,24 +31,12 @@ export const api = {
   },
 };
 
-// ============================================
-// УТИЛИТЫ ФОРМАТИРОВАНИЯ
-// ============================================
-/**
- * Форматирует дату и время из SQLite (UTC) в локальное время
- * @param {string} dateString - Строка с датой в формате "YYYY-MM-DD HH:MM:SS" (UTC)
- * @param {boolean} returnOnlyDate - Возвращать только дату
- * @returns {string} Отформатированная строка в локальном времени
- */
 export function formatDateTime(dateString, returnOnlyDate = false) {
   if (!dateString) return "—";
 
   try {
-    // Простое преобразование: SQLite формат -> ISO с UTC
     const date = new Date(
-      dateString.includes(" ")
-        ? dateString.replace(" ", "T") + "Z" // SQLite формат: добавляем Z для UTC
-        : dateString // Уже в ISO формате
+      dateString.includes(" ") ? dateString.replace(" ", "T") + "Z" : dateString
     );
 
     if (isNaN(date.getTime())) return "—";
@@ -95,20 +80,15 @@ export function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-// ============================================
-// ПОИСК ПОХОЖИХ ИГР (ДЛЯ ДУБЛИКАТОВ)
-// ============================================
 export function findSimilarGames(gameName, allGames, currentGameId = null) {
   const searchTerm = gameName.toLowerCase().trim();
 
-  // Если строка поиска пустая или слишком короткая - возвращаем пустой массив
   if (searchTerm.length < 2) {
     return [];
   }
 
   return allGames
     .filter((game) => {
-      // Исключаем текущую редактируемую игру
       if (currentGameId && game.id == currentGameId) {
         return false;
       }
@@ -119,21 +99,17 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
         ? game.name.toLowerCase()
         : "";
 
-      // 1. Точное совпадение (самый высокий приоритет)
       if (gameNameLower === searchTerm) {
         return true;
       }
 
-      // 2. Ищем игры, которые начинаются с поискового запроса
       if (gameNameLower.startsWith(searchTerm)) {
         return true;
       }
 
-      // 3. Разбиваем на слова и ищем точные совпадения слов
       const searchWords = searchTerm.split(/\s+/).filter((w) => w.length > 1);
       const gameWords = gameNameLower.split(/\s+/);
 
-      // Проверяем, содержатся ли все слова поиска в названии игры
       if (searchWords.length > 0) {
         const allSearchWordsFound = searchWords.every((searchWord) =>
           gameWords.some((gameWord) => gameWord === searchWord)
@@ -144,14 +120,11 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
         }
       }
 
-      // 4. Проверяем на частичное совпадение (только если запрос длинный)
       if (searchTerm.length > 3) {
-        // Ищем игры, которые содержат поисковый запрос целиком
         if (gameNameLower.includes(searchTerm)) {
           return true;
         }
 
-        // Ищем игры, где каждое слово поиска содержится в названии
         if (searchWords.length > 0) {
           const allWordsPartiallyFound = searchWords.every((searchWord) =>
             gameNameLower.includes(searchWord)
@@ -164,7 +137,6 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
       return false;
     })
     .sort((a, b) => {
-      // Сортируем результаты по релевантности
       const aName = a.title
         ? a.title.toLowerCase()
         : a.name
@@ -176,28 +148,24 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
         ? b.name.toLowerCase()
         : "";
 
-      // Точное совпадение имеет высший приоритет
       if (aName === searchTerm) return -1;
       if (bName === searchTerm) return 1;
 
-      // Начинающиеся с запроса - следующий приоритет
       if (aName.startsWith(searchTerm)) return -1;
       if (bName.startsWith(searchTerm)) return 1;
 
-      // Затем по алфавиту
       return aName.localeCompare(bName);
     });
 }
 
-// ============================================
-// ПОЛУЧЕНИЕ РУССКОГО ТЕКСТА СТАТУСА
-// ============================================
-export function getStatusTextRu(status) {
+export function getStatusText(status) {
   const statusMap = {
-    playing: "Играю",
-    planned: "В планах",
-    completed: "Прошёл",
-    dropped: "Дропнул",
+    playing: "status_playing_display",
+    planned: "status_planned_display",
+    completed: "status_completed_display",
+    dropped: "status_dropped_display",
   };
-  return statusMap[status] || "Неизвестно";
+
+  const key = statusMap[status] || "status_unknown_display";
+  return t(key);
 }

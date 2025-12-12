@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Games List Manager</title>
+    <title data-i18n="app_title">Games List Manager</title>
     <link rel="stylesheet" href="style.css" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
   </head>
@@ -12,15 +12,17 @@
     <div id="app-overlay" class="app-overlay" style="display: none">
       <div class="app-overlay__content">
         <div class="spinner"></div>
-        <p>Загрузка...</p>
+        <p data-i18n="loading">Загрузка...</p>
       </div>
     </div>
 
     <div class="app">
       <header class="app-header">
         <div class="app-header__title-block">
-          <h1 class="app-header__title">Games List Manager</h1>
-          <span class="app-header__version">v0.0.0</span>
+          <h1 class="app-header__title" data-i18n="app_title">
+            Games List Manager
+          </h1>
+          <span class="app-header__version" id="app-version">v0.0.0</span>
         </div>
         <!-- Блок для выбора языка локализации и темы-->
         <div class="app-header__settings">
@@ -28,16 +30,16 @@
             id="theme-toggle"
             class="btn btn--icon"
             aria-label="Переключить тему"
+            data-i18n-title="theme_toggle_tooltip"
             data-tooltip="Переключить тему"
           >
             🌙
           </button>
           <select id="language-select" class="select select--small">
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
+            <!-- options будут сгенерированы динамически -->
           </select>
         </div>
-        <p class="app-header__description">
+        <p class="app-header__description" data-i18n="app_description">
           Удобный инструмент для локального управления статусами прохождения игр
         </p>
       </header>
@@ -48,6 +50,7 @@
             id="add-game-btn"
             class="btn btn--primary btn--icon-left"
             data-icon="+"
+            data-i18n="add_game_button"
           >
             Добавить игру
           </button>
@@ -55,39 +58,58 @@
           <div class="stats">
             <button class="stats__item stats__item--active" data-filter="all">
               <span class="stats__count" id="total-games">0</span>
-              <span class="stats__label">Всего</span>
+              <span class="stats__label" data-i18n="all_games_label"
+                >Всего</span
+              >
             </button>
             <button class="stats__item" data-filter="playing">
               <span class="stats__count" id="playing-games">0</span>
-              <span class="stats__label">Играю</span>
+              <span class="stats__label" data-i18n="playing_games_label"
+                >Играю</span
+              >
             </button>
             <button class="stats__item" data-filter="planned">
               <span class="stats__count" id="planned-games">0</span>
-              <span class="stats__label">В планах</span>
+              <span class="stats__label" data-i18n="planned_games_label"
+                >В планах</span
+              >
             </button>
             <button class="stats__item" data-filter="completed">
               <span class="stats__count" id="completed-games">0</span>
-              <span class="stats__label">Пройдено</span>
+              <span class="stats__label" data-i18n="completed_games_label"
+                >Пройдено</span
+              >
             </button>
             <button class="stats__item" data-filter="dropped">
               <span class="stats__count" id="dropped-games">0</span>
-              <span class="stats__label">Дропнул</span>
+              <span class="stats__label" data-i18n="dropped_games_label"
+                >Дропнул</span
+              >
             </button>
           </div>
         </div>
 
         <div class="topbar__right">
           <select id="sort-select" class="select">
-            <option value="rating-desc">По оценке</option>
-            <option value="title-asc">По названию</option>
-            <option value="added-desc">По дате добавления</option>
-            <option value="added-asc">По дате обновления</option>
+            <option value="rating-desc" data-i18n="sort_by_rating">
+              По оценке
+            </option>
+            <option value="title-asc" data-i18n="sort_by_title">
+              По названию
+            </option>
+            <option value="added-desc" data-i18n="sort_by_date_added">
+              По дате добавления
+            </option>
+            <option value="added-asc" data-i18n="sort_by_date_updated">
+              По дате обновления
+            </option>
           </select>
           <input
             id="search"
             type="search"
             class="search"
             placeholder="Поиск по названию..."
+            data-i18n-placeholder="search_placeholder"
           />
         </div>
       </div>
@@ -104,7 +126,7 @@
         <div id="form-overlay" class="modal__overlay" style="display: none">
           <div class="modal__overlay-content">
             <div class="spinner"></div>
-            <p>Сохранение...</p>
+            <p data-i18n="saving">Сохранение...</p>
           </div>
         </div>
 
@@ -112,11 +134,18 @@
           class="modal__close"
           id="modal-close"
           data-tooltip="Закрыть"
+          data-i18n-title="close_tooltip"
           aria-label="Закрыть"
         >
           ✕
         </button>
-        <h2 class="modal__title" id="modal-title">Добавить игру</h2>
+        <h2
+          class="modal__title"
+          id="modal-title"
+          data-i18n="add_game_modal_title"
+        >
+          Добавить игру
+        </h2>
 
         <form id="game-form" class="form" autocomplete="off">
           <input type="hidden" id="game-id" />
@@ -124,8 +153,15 @@
           <div class="form__content">
             <div class="form__fields">
               <div class="form__row">
-                <label for="title" class="form__label">
-                  Название <span class="form__required">*</span>
+                <label
+                  for="title"
+                  class="form__label"
+                  data-i18n="game_title_label"
+                >
+                  Название
+                  <span class="form__required" data-i18n="required_field"
+                    >*</span
+                  >
                 </label>
                 <input
                   id="title"
@@ -133,6 +169,7 @@
                   class="form__input"
                   required
                   placeholder="Введите название игры"
+                  data-i18n-placeholder="game_title_placeholder"
                 />
                 <!-- Контейнер для всплывающего уведомления о дублях -->
                 <div id="duplicate-popup" class="duplicate-popup"></div>
@@ -140,17 +177,28 @@
 
               <div class="form__grid form__grid--3cols">
                 <div class="form__field">
-                  <label for="version" class="form__label--small">Версия</label>
+                  <label
+                    for="version"
+                    class="form__label--small"
+                    data-i18n="version_label"
+                    >Версия</label
+                  >
                   <input
                     id="version"
                     type="text"
                     class="form__input"
                     placeholder="например, GOTY или 1.2.3"
+                    data-i18n-placeholder="version_placeholder"
                   />
                 </div>
 
                 <div class="form__field">
-                  <label for="rating" class="form__label--small">Оценка</label>
+                  <label
+                    for="rating"
+                    class="form__label--small"
+                    data-i18n="rating_label"
+                    >Оценка</label
+                  >
                   <input
                     id="rating"
                     type="number"
@@ -163,18 +211,37 @@
                 </div>
 
                 <div class="form__field">
-                  <label for="status" class="form__label--small">Статус</label>
+                  <label
+                    for="status"
+                    class="form__label--small"
+                    data-i18n="status_label"
+                    >Статус</label
+                  >
                   <select id="status" class="form__select">
-                    <option value="playing">Играю</option>
-                    <option value="planned">В планах</option>
-                    <option value="completed">Прошёл</option>
-                    <option value="dropped">Дропнул</option>
+                    <option value="playing" data-i18n-value="status_playing">
+                      Играю
+                    </option>
+                    <option value="planned" data-i18n-value="status_planned">
+                      В планах
+                    </option>
+                    <option
+                      value="completed"
+                      data-i18n-value="status_completed"
+                    >
+                      Прошёл
+                    </option>
+                    <option value="dropped" data-i18n-value="status_dropped">
+                      Дропнул
+                    </option>
                   </select>
                 </div>
               </div>
 
               <div class="form__row">
-                <label for="game-link" class="form__label"
+                <label
+                  for="game-link"
+                  class="form__label"
+                  data-i18n="game_link_label"
                   >Ссылка на игру</label
                 >
                 <input
@@ -182,16 +249,20 @@
                   type="text"
                   class="form__input"
                   placeholder="https://..."
+                  data-i18n-placeholder="game_link_placeholder"
                 />
               </div>
 
               <div class="form__row form__row--grow">
-                <label for="review" class="form__label">Отзыв</label>
+                <label for="review" class="form__label" data-i18n="review_label"
+                  >Отзыв</label
+                >
                 <textarea
                   id="review"
                   class="form__textarea"
                   rows="5"
                   placeholder="Коротко о впечатлениях"
+                  data-i18n-placeholder="review_placeholder"
                 ></textarea>
               </div>
             </div>
@@ -213,14 +284,25 @@
                 id="remove-screenshot"
                 type="button"
                 class="btn btn--secondary btn--small hidden"
+                data-i18n="remove_screenshot_button"
               >
                 Удалить изображение
               </button>
               <div class="form__actions">
-                <button id="cancel-btn" type="button" class="btn">
+                <button
+                  id="cancel-btn"
+                  type="button"
+                  class="btn"
+                  data-i18n="cancel_button"
+                >
                   Отмена
                 </button>
-                <button id="save-btn" type="submit" class="btn btn--primary">
+                <button
+                  id="save-btn"
+                  type="submit"
+                  class="btn btn--primary"
+                  data-i18n="save_button"
+                >
                   Добавить
                 </button>
               </div>
@@ -237,6 +319,7 @@
           class="modal__close"
           id="view-close"
           data-tooltip="Закрыть"
+          data-i18n-title="close_tooltip"
           aria-label="Закрыть"
         >
           ✕
@@ -257,6 +340,7 @@
                 class="view__copy"
                 id="view-copy-title"
                 aria-label="Копировать название"
+                data-i18n-title="copy_title_tooltip"
                 data-tooltip="Копировать название"
               >
                 ⧉
@@ -264,7 +348,7 @@
             </div>
 
             <div class="view__meta">
-              <div class="view__version" id="view-version">Версия: —</div>
+              <div class="view__version" id="view-version"></div>
               <div class="status-badge" id="view-status"></div>
             </div>
 
@@ -275,17 +359,23 @@
             <div class="view__footer">
               <div class="view__dates">
                 <div class="view__date" id="view-created-at">
-                  <span>Создано:</span>
+                  <span data-i18n="created_label">Создано:</span>
                   <span>—</span>
                 </div>
                 <div class="view__date" id="view-updated-at">
-                  <span>Обновлено:</span>
+                  <span data-i18n="updated_label">Обновлено:</span>
                   <span>—</span>
                 </div>
               </div>
               <div class="view__actions">
-                <button id="view-edit" class="btn">Редактировать</button>
-                <button id="view-delete" class="btn btn--danger">
+                <button id="view-edit" class="btn" data-i18n="edit_button">
+                  Редактировать
+                </button>
+                <button
+                  id="view-delete"
+                  class="btn btn--danger"
+                  data-i18n="delete_button"
+                >
                   Удалить
                 </button>
               </div>
@@ -298,17 +388,30 @@
     <!-- Модальное окно подтверждения -->
     <div id="confirm-modal" class="modal" aria-hidden="true">
       <div class="modal__panel modal__panel--small">
-        <h3 class="modal__title">Подтвердите удаление</h3>
-        <p class="modal__text">Удалить карточку игры?</p>
+        <h3 class="modal__title" data-i18n="confirm_delete_title">
+          Подтвердите удаление
+        </h3>
+        <p class="modal__text" data-i18n="confirm_delete_text">
+          Удалить карточку игры?
+        </p>
         <div class="modal__actions">
-          <button id="confirm-cancel" class="btn">Отмена</button>
-          <button id="confirm-delete" class="btn btn--danger">Удалить</button>
+          <button id="confirm-cancel" class="btn" data-i18n="cancel_button">
+            Отмена
+          </button>
+          <button
+            id="confirm-delete"
+            class="btn btn--danger"
+            data-i18n="delete_button"
+          >
+            Удалить
+          </button>
         </div>
       </div>
     </div>
 
     <script src="/eel.js"></script>
     <script type="module" src="js/tooltips.js"></script>
+    <script type="module" src="js/localisation.js"></script>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>
