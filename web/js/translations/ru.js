@@ -55,9 +55,9 @@ export default {
   close_tooltip: "Закрыть",
 
   empty_list: "Список пуст",
-  game_added: "Игра {title} добавлена",
-  game_updated: "Игра {title} обновлена",
-  game_deleted: "Игра {title} удалена",
+  game_added: "Игра добавлена: {title}",
+  game_updated: "Обновлено: {title}",
+  game_deleted: "Удалено: {title}",
   copied_to_clipboard: "Скопировано в буфер",
   loading: "Загрузка...",
   saving: "Сохранение...",

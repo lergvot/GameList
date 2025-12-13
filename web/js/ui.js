@@ -390,12 +390,18 @@ export async function onConfirmDelete(state) {
   if (!state.selectedToDelete) return;
 
   try {
+    // Находим игру в списке, чтобы получить название
+    const gameToDelete = state.allGames?.find(
+      (game) => game.id === state.selectedToDelete
+    );
+    const gameTitle = gameToDelete?.title || state.selectedToDelete;
+
     const success = await api.deleteGame(state.selectedToDelete);
     if (success) {
       await app.loadAndRender(state);
       closeConfirmModal(state);
       closeView();
-      showToast(t("game_deleted"));
+      showToast(t("game_deleted", { title: gameTitle }));
     }
   } catch (e) {
     console.error(e);
