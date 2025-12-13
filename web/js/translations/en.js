@@ -55,9 +55,9 @@ export default {
   close_tooltip: "Close",
 
   empty_list: "List is empty",
-  game_added: "Added game: {title}",
-  game_updated: "Updated: {title}",
-  game_deleted: "Deleted: {title}",
+  game_added: "Game '{title}' added",
+  game_updated: "Game '{title}' updated",
+  game_deleted: "Game '{title}' deleted",
   copied_to_clipboard: "Copied to clipboard",
   loading: "Loading...",
   saving: "Saving...",
