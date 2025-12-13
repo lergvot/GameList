@@ -99,7 +99,7 @@ def cleanup():
 
 def copy_additional_files(dest_dir):
     """Копирует дополнительные файлы в дистрибутив"""
-    files_to_copy = ["README.md", "LICENSE", "LICENSE.txt", "LICENSE.md"]
+    files_to_copy = ["README.md", "LICENSE"]
 
     for file in files_to_copy:
         if os.path.exists(file):
