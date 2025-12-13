@@ -4,7 +4,7 @@
 """
 
 # Версия приложения
-APP_VERSION = "1.12.0"
+APP_VERSION = "1.13.0"
 
 # Название приложения
 APP_NAME = "Games List Manager"
