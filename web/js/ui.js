@@ -61,6 +61,15 @@ function renderGameCards(games, helpers) {
                 : "—"
             }
           </div>
+          <div class="game-card__image">
+            ${
+              escapedGame.screenshot
+                ? `<img src="${escapedGame.screenshot}" alt="${escapedGame.title}" loading="lazy">`
+                : `<div class="game-card__image-placeholder">${t(
+                    "no_image"
+                  )}</div>`
+            }
+          </div>
         </div>
         
         <div class="game-card__main">
