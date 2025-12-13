@@ -378,6 +378,11 @@ body.theme-light #theme-toggle {
   transition: border-color 0.15s ease;
 }
 
+/* Убираем маркер изменения размера в WebKit браузерах (Chrome, Safari) */
+.form__textarea::-webkit-resizer {
+  display: none;
+}
+
 .form__input:focus,
 .form__select:focus,
 .form__textarea:focus {
