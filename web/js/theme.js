@@ -47,12 +47,43 @@ export class ThemeManager {
     const icon = this.themeToggle.querySelector("span") || this.themeToggle;
     icon.textContent = theme === "light" ? "☀️" : "🌙";
 
-    // Обновляем tooltip
+    // Обновляем тултип
+    this.updateTooltip(theme);
+  }
+
+  // ПУБЛИЧНЫЙ МЕТОД для обновления тултипа
+  updateTooltip(theme = null) {
+    // Если тема не передана, используем текущую
+    const currentTheme =
+      theme ||
+      (this.currentTheme === "system"
+        ? this.getSystemTheme()
+        : this.currentTheme);
+
+    // Определяем противоположную тему для тултипа
+    const oppositeTheme = currentTheme === "light" ? "dark" : "light";
+
+    // Получаем актуальные значения локализации
+    let tooltipLight = "Переключить на тёмную тему";
+    let tooltipDark = "Переключить на светлую тему";
+
+    // Проверяем глобальные переменные
+    if (window.$theme_toggle_tooltip_light) {
+      tooltipLight = window.$theme_toggle_tooltip_light;
+    } else if (typeof $theme_toggle_tooltip_light !== "undefined") {
+      tooltipLight = $theme_toggle_tooltip_light;
+    }
+
+    if (window.$theme_toggle_tooltip_dark) {
+      tooltipDark = window.$theme_toggle_tooltip_dark;
+    } else if (typeof $theme_toggle_tooltip_dark !== "undefined") {
+      tooltipDark = $theme_toggle_tooltip_dark;
+    }
+
+    // Устанавливаем правильный тултип в зависимости от противоположной темы
     this.themeToggle.setAttribute(
       "data-tooltip",
-      theme === "light"
-        ? "Переключить на тёмную тему"
-        : "Переключить на светлую тему"
+      oppositeTheme === "light" ? tooltipLight : tooltipDark
     );
   }
 
@@ -78,3 +109,6 @@ export class ThemeManager {
     return this.currentTheme;
   }
 }
+
+// Создаем глобальный экземпляр для доступа из других модулей
+window.themeManager = new ThemeManager();

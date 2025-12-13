@@ -128,7 +128,7 @@ function renderGameCards(games, helpers) {
                         /'/g,
                         "\\'"
                       )}')"
-                      aria-label="${t("copy_link_tooltip")}"
+                      data-i18n-title="${t("copy_link_tooltip")}"
                       data-tooltip="${t("copy_link_tooltip")}">
                       🡵
                     </button>
@@ -137,7 +137,7 @@ function renderGameCards(games, helpers) {
               }
               <button class="btn btn--icon" 
                 onclick="event.stopPropagation(); app.openForm(${gameJson})"
-                aria-label="${t("edit_tooltip")}"
+                data-i18n-title="${t("edit_tooltip")}"
                 data-tooltip="${t("edit_tooltip")}">
                 ✎
               </button>
@@ -145,7 +145,7 @@ function renderGameCards(games, helpers) {
                 onclick="event.stopPropagation(); app.openConfirmModal(${
                   game.id
                 })"
-                aria-label="${t("delete_tooltip")}"
+                data-i18n-title="${t("delete_tooltip")}"
                 data-tooltip="${t("delete_tooltip")}">
                 🗑
               </button>

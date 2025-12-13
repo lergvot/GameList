@@ -55,9 +55,9 @@ export default {
   close_tooltip: "Закрыть",
 
   empty_list: "Список пуст",
-  game_added: "Игра '{title}' добавлена",
-  game_updated: "Игра '{title}' обновлена",
-  game_deleted: "Игра '{title}' удалена",
+  game_added: "Игра {title} добавлена",
+  game_updated: "Игра {title} обновлена",
+  game_deleted: "Игра {title} удалена",
   copied_to_clipboard: "Скопировано в буфер",
   loading: "Загрузка...",
   saving: "Сохранение...",
@@ -68,7 +68,8 @@ export default {
   language_label: "Язык",
   russian_language: "Русский",
   english_language: "English",
-  theme_toggle_tooltip: "Переключить тему",
+  theme_toggle_tooltip_light: "Переключить на светлую тему",
+  theme_toggle_tooltip_dark: "Переключить на тёмную тему",
 
   title_required: "Название обязательно",
   save_error: "Ошибка сохранения",

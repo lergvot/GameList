@@ -43,6 +43,16 @@ class Localisation {
       this.translations = translationModule.default;
       this.currentLang = lang;
 
+      // Устанавливаем глобальные переменные для тултипов темы
+      if (this.translations.theme_toggle_tooltip_light) {
+        window.$theme_toggle_tooltip_light =
+          this.translations.theme_toggle_tooltip_light;
+      }
+      if (this.translations.theme_toggle_tooltip_dark) {
+        window.$theme_toggle_tooltip_dark =
+          this.translations.theme_toggle_tooltip_dark;
+      }
+
       localStorage.setItem("lang", lang);
 
       console.log(`Loaded ${lang} language`);
@@ -106,6 +116,7 @@ class Localisation {
   }
 
   applyTranslations() {
+    // 1. Текстовые элементы
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
       const text = this.t(key);
@@ -114,6 +125,7 @@ class Localisation {
       }
     });
 
+    // 2. Placeholder
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       const key = el.getAttribute("data-i18n-placeholder");
       const text = this.t(key);
@@ -122,17 +134,30 @@ class Localisation {
       }
     });
 
+    // 3. КАСТОМНЫЕ тултипы (data-tooltip) - без title!
+    document.querySelectorAll("[data-i18n-tooltip]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-tooltip");
+      const text = this.t(key);
+      if (text !== key) {
+        // Только data-tooltip, title удаляем
+        el.setAttribute("data-tooltip", text);
+        el.removeAttribute("title");
+      }
+    });
+
+    // 4. СТАНДАРТНЫЕ тултипы (title) - только для элементов без data-tooltip
     document.querySelectorAll("[data-i18n-title]").forEach((el) => {
       const key = el.getAttribute("data-i18n-title");
       const text = this.t(key);
       if (text !== key) {
-        el.title = text;
-        if (el.hasAttribute("data-tooltip")) {
-          el.setAttribute("data-tooltip", text);
+        // Если у элемента есть data-tooltip, пропускаем
+        if (!el.hasAttribute("data-tooltip")) {
+          el.title = text;
         }
       }
     });
 
+    // 5. Option values
     document.querySelectorAll("option[data-i18n-value]").forEach((el) => {
       const key = el.getAttribute("data-i18n-value");
       const text = this.t(key);
@@ -141,6 +166,7 @@ class Localisation {
       }
     });
 
+    // 6. aria-label
     document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
       const key = el.getAttribute("data-i18n-aria-label");
       const text = this.t(key);
@@ -148,6 +174,21 @@ class Localisation {
         el.setAttribute("aria-label", text);
       }
     });
+
+    // 7. Для элементов с data-i18n-title И data-tooltip - удаляем title
+    document
+      .querySelectorAll("[data-i18n-title][data-tooltip]")
+      .forEach((el) => {
+        el.removeAttribute("title");
+      });
+
+    // 8. Обновляем тултип переключателя темы
+    if (
+      window.themeManager &&
+      typeof window.themeManager.updateTooltip === "function"
+    ) {
+      window.themeManager.updateTooltip();
+    }
   }
 
   getCurrentLang() {

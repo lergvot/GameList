@@ -55,9 +55,9 @@ export default {
   close_tooltip: "Close",
 
   empty_list: "List is empty",
-  game_added: "Game '{title}' added",
-  game_updated: "Game '{title}' updated",
-  game_deleted: "Game '{title}' deleted",
+  game_added: "Game {title} added",
+  game_updated: "Game {title} updated",
+  game_deleted: "Game {title} deleted",
   copied_to_clipboard: "Copied to clipboard",
   loading: "Loading...",
   saving: "Saving...",
@@ -68,7 +68,8 @@ export default {
   language_label: "Language",
   russian_language: "Russian",
   english_language: "English",
-  theme_toggle_tooltip: "Toggle theme",
+  theme_toggle_tooltip_light: "Switch to light theme",
+  theme_toggle_tooltip_dark: "Switch to dark theme",
 
   title_required: "Title is required",
   save_error: "Save error",
