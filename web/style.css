@@ -29,11 +29,11 @@
   /* Status colors - БОЛЕЕ НЕЙТРАЛЬНЫЕ */
   --color-status-playing: #4e94ce;
   --color-status-playing-bg: rgba(78, 148, 206, 0.15);
-  --color-status-completed: #2e8b57; /* Более нейтральный зеленый */
+  --color-status-completed: #2e8b57;
   --color-status-completed-bg: rgba(46, 139, 87, 0.15);
   --color-status-planned: #d7ba7d;
   --color-status-planned-bg: rgba(215, 186, 125, 0.12);
-  --color-status-dropped: #c44d56; /* Более нейтральный красный */
+  --color-status-dropped: #c44d56;
   --color-status-dropped-bg: rgba(196, 77, 86, 0.15);
 
   /* State colors */
@@ -234,7 +234,6 @@ p {
   padding: 6px;
   min-width: 32px;
   min-height: 32px;
-  /* УБРАНО УВЕЛИЧЕНИЕ ПРИ НАВЕДЕНИИ */
 }
 
 #theme-toggle:hover {
@@ -386,7 +385,7 @@ body.theme-light #theme-toggle {
 .form__input:focus,
 .form__select:focus,
 .form__textarea:focus {
-  border-color: var(--color-border-hover); /* ИЗМЕНЕНО: убрана синяя обводка */
+  border-color: var(--color-border-hover);
   outline: none;
 }
 
@@ -524,7 +523,7 @@ body.theme-light #theme-toggle {
 }
 
 .search:focus {
-  border-color: var(--color-border-hover); /* ИЗМЕНЕНО: убрана синяя обводка */
+  border-color: var(--color-border-hover);
   outline: none;
 }
 
@@ -558,7 +557,7 @@ body.theme-light #theme-toggle {
 }
 
 .select:focus {
-  border-color: var(--color-border-hover); /* ИЗМЕНЕНО: убрана синяя обводка */
+  border-color: var(--color-border-hover);
   outline: none;
 }
 
@@ -665,7 +664,7 @@ body.theme-light #theme-toggle {
 }
 
 .status-badge--completed {
-  color: var(--color-status-completed); /* БОЛЕЕ НЕЙТРАЛЬНЫЙ ЗЕЛЕНЫЙ */
+  color: var(--color-status-completed);
   background: var(--color-status-completed-bg);
   border-color: rgba(46, 139, 87, 0.3);
 }
@@ -677,7 +676,7 @@ body.theme-light #theme-toggle {
 }
 
 .status-badge--dropped {
-  color: var(--color-status-dropped); /* БОЛЕЕ НЕЙТРАЛЬНЫЙ КРАСНЫЙ */
+  color: var(--color-status-dropped);
   background: var(--color-status-dropped-bg);
   border-color: rgba(196, 77, 86, 0.3);
 }
@@ -864,7 +863,7 @@ body.theme-light #theme-toggle {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  align-items: flex-start; /* Добавлено: прижимаем к левому краю */
+  align-items: flex-start;
 }
 
 .game-card__dates {
@@ -1011,7 +1010,7 @@ body.theme-light #theme-toggle {
 .modal__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6); /* Полупрозрачный фон */
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(1px);
   display: none;
   justify-content: center;
@@ -1067,9 +1066,8 @@ body.theme-light #theme-toggle {
   width: 100%;
   padding: var(--space-md);
   border-radius: var(--radius-sm);
-  border: 1px solid transparent; /* Убрать transparent */
-  background: var(--color-surface); /* Добавить */
-  border: 1px solid var(--color-border); /* Добавить */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .upload-area:hover {
@@ -1093,8 +1091,13 @@ body.theme-light #theme-toggle {
   object-fit: cover;
 }
 
+/* Убираем старый ::before */
 .upload-area__preview--empty::before {
-  content: "Загрузить изображение";
+  display: none;
+}
+
+/* Стили для текстового плейсхолдера */
+.upload-area__placeholder {
   color: var(--color-text-muted);
   font-size: 11px;
   text-align: center;
@@ -1305,7 +1308,7 @@ body.theme-light #theme-toggle {
    ========================================================================== */
 
 .duplicate-popup {
-  position: fixed; /* ИЗМЕНЕНО: fixed вместо absolute */
+  position: fixed;
   z-index: 1100; /* Выше чем модальные окна */
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1530,11 +1533,11 @@ body.modal-open {
     /* Status colors for light theme */
     --color-status-playing: #0f6cbd;
     --color-status-playing-bg: rgba(15, 108, 189, 0.1);
-    --color-status-completed: #2e8b57; /* Более нейтральный зеленый */
+    --color-status-completed: #2e8b57;
     --color-status-completed-bg: rgba(46, 139, 87, 0.1);
     --color-status-planned: #8a6800;
     --color-status-planned-bg: rgba(138, 104, 0, 0.08);
-    --color-status-dropped: #c44d56; /* Более нейтральный красный */
+    --color-status-dropped: #c44d56;
     --color-status-dropped-bg: rgba(196, 77, 86, 0.1);
 
     --color-hover: rgba(0, 0, 0, 0.05);

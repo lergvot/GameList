@@ -21,6 +21,14 @@ let gamesListEl,
   duplicatePopup,
   sortSelect;
 
+function createUploadPlaceholder() {
+  const placeholder = document.createElement("span");
+  placeholder.className = "upload-area__placeholder";
+  placeholder.setAttribute("data-i18n", "upload_image_placeholder");
+  placeholder.textContent = t("upload_image_placeholder");
+  return placeholder;
+}
+
 function renderGameCards(games, helpers) {
   if (!games.length) {
     return `<div class="empty">${t("empty_list")}</div>`;
@@ -241,6 +249,27 @@ export function sortGames(games, sortType) {
   return sorted;
 }
 
+// Функцию для создания/обновления плейсхолдера
+function updateUploadPlaceholder() {
+  if (!screenshotPreview) return;
+
+  let placeholder = screenshotPreview.querySelector(
+    ".upload-area__placeholder"
+  );
+  if (!placeholder) {
+    placeholder = document.createElement("span");
+    placeholder.className = "upload-area__placeholder";
+    placeholder.setAttribute("data-i18n", "upload_image_placeholder");
+    screenshotPreview.appendChild(placeholder);
+  }
+
+  // Используем функцию t для получения перевода
+  const text = t("upload_image_placeholder");
+  // Если t вернула ключ (перевод не найден), используем fallback
+  placeholder.textContent =
+    text !== "upload_image_placeholder" ? text : "Загрузить изображение";
+}
+
 export function openForm(state, game = null) {
   if (!modal) return;
 
@@ -262,15 +291,18 @@ export function openForm(state, game = null) {
 
   state.unsavedScreenshotData = null;
   screenshotInput.value = "";
-  const isScreenshotEmpty = !game?.screenshot_data;
-  screenshotPreview.classList.toggle(
-    "upload-area__preview--empty",
-    isScreenshotEmpty
-  );
-  screenshotPreview.innerHTML = game?.screenshot_data
-    ? `<img src="${game.screenshot_data}" alt="preview" loading="lazy">`
-    : "";
-  removeScreenshotBtn.classList.toggle("hidden", isScreenshotEmpty);
+
+  // ОДИН блок кода для обработки скриншота - без дублирования
+  if (game?.screenshot_data) {
+    screenshotPreview.innerHTML = `<img src="${game.screenshot_data}" alt="preview" loading="lazy">`;
+    screenshotPreview.classList.remove("upload-area__preview--empty");
+    removeScreenshotBtn.classList.remove("hidden");
+  } else {
+    screenshotPreview.innerHTML = "";
+    screenshotPreview.classList.add("upload-area__preview--empty");
+    updateUploadPlaceholder(); // Добавляем плейсхолдер
+    removeScreenshotBtn.classList.add("hidden");
+  }
 
   document.getElementById("modal-title").textContent = game
     ? t("edit_game_modal_title")
@@ -626,6 +658,14 @@ export function setupEventHandlers(state) {
       filterAndDisplay(state);
     });
   }
+
+  // Инициализируем плейсхолдер для скриншота
+  if (
+    screenshotPreview &&
+    screenshotPreview.classList.contains("upload-area__preview--empty")
+  ) {
+    updateUploadPlaceholder();
+  }
 }
 
 function lockForm(lock = true, state) {
@@ -725,6 +765,9 @@ function onRemoveScreenshot(state) {
   screenshotPreview.classList.add("upload-area__preview--empty");
   screenshotInput.value = "";
   removeScreenshotBtn.classList.add("hidden");
+
+  // Добавляем плейсхолдер после очистки
+  updateUploadPlaceholder();
 }
 
 function updateStatusSelectStyle() {

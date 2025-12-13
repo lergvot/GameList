@@ -189,6 +189,17 @@ class Localisation {
     ) {
       window.themeManager.updateTooltip();
     }
+
+    // 9. Обновляем плейсхолдер загрузки изображения, если он есть
+    const uploadPlaceholder = document.querySelector(
+      '.upload-area__placeholder[data-i18n="upload_image_placeholder"]'
+    );
+    if (uploadPlaceholder) {
+      const text = this.t("upload_image_placeholder");
+      if (text !== "upload_image_placeholder") {
+        uploadPlaceholder.textContent = text;
+      }
+    }
   }
 
   getCurrentLang() {
