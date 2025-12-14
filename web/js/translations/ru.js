@@ -1,8 +1,7 @@
 // web/js/translations/ru.js
 export default {
-  app_title: "Games List Manager",
-  app_description:
-    "Удобный инструмент для локального управления статусами прохождения игр",
+  app_title: "Game List Manager",
+  app_description: "Локальный менеджер статусов прохождения игр",
 
   add_game_button: "Добавить игру",
   cancel_button: "Отмена",

@@ -2,8 +2,9 @@
 /dist
 /build
 /tests
-/Games List Manager
+/Game List Manager
 /venv
 __pycache__
+GameList.spec
 future.txt
 TODO.md

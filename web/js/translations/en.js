@@ -1,8 +1,7 @@
 // web/js/translations/en.js
 export default {
-  app_title: "Games List Manager",
-  app_description:
-    "A convenient tool for local management of game completion statuses",
+  app_title: "Game List Manager",
+  app_description: "Local manager for game completion statuses",
 
   add_game_button: "Add Game",
   cancel_button: "Cancel",
