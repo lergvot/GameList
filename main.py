@@ -30,7 +30,7 @@ def normalize_filename(name):
     return name.replace(" ", "_").replace("_+", "_")[:100].strip("_")
 
 
-def optimize_screenshot(image_data, max_width=1200, quality=85):
+def optimize_screenshot(image_data, max_width=1366, quality=85):
     """Оптимизирует изображение в WebP, пропускает SVG"""
     try:
         if "," in image_data:

@@ -10,7 +10,7 @@ APP_VERSION = "1.13.0"
 APP_NAME = "GameList"
 
 # Размер окна приложения (ширина, высота)
-WINDOW_SIZE = (1200, 700)
+WINDOW_SIZE = (1280, 720)
 
 # Позиция окна при запуске (x, y)
 WINDOW_POSITION = (100, 100)
