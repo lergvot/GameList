@@ -47,6 +47,7 @@ python build.py
 
 ### Зависимости Python
 
+- Python 3.12+
 - eel
 - Pillow
 

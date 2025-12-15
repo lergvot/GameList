@@ -56,6 +56,7 @@ def optimize_screenshot(image_data, max_width=1366, quality=85):
             image = background
 
         # Ресайз если нужно
+        original_size = (image.width, image.height)
         if image.width > max_width:
             ratio = max_width / image.width
             image = image.resize(
@@ -64,6 +65,10 @@ def optimize_screenshot(image_data, max_width=1366, quality=85):
 
         output = io.BytesIO()
         image.save(output, format="WEBP", quality=quality, optimize=True)
+
+        logger.info(
+            f"Image optimized: {original_size[0]}x{original_size[1]} → {image.width}x{image.height}"
+        )
         return base64.b64encode(output.getvalue()).decode("utf-8")
     except Exception as e:
         logger.error(f"Error optimizing image: {e}")
@@ -74,6 +79,7 @@ def ensure_dirs():
     """Создает необходимые папки"""
     DATA_DIR.mkdir(exist_ok=True)
     SCREENSHOTS_DIR.mkdir(exist_ok=True)
+    logger.debug(f"Directories checked/created: {DATA_DIR}, {SCREENSHOTS_DIR}")
 
 
 def init_db():
@@ -130,16 +136,21 @@ def save_screenshot(image_data, game_id, game_title):
         with open(filepath, "wb") as f:
             f.write(image_bytes)
 
+        logger.info(f"Screenshot saved: {filename} (ID: {game_id})")
         return str(filepath)
     except Exception as e:
-        logger.error(f"Error saving screenshot: {e}")
+        logger.error(f"Error saving screenshot for game {game_id}: {e}")
         return ""
 
 
-def delete_screenshot(screenshot_path):
+def delete_screenshot(screenshot_path, game_id):
     """Удаляет файл скриншота"""
     if screenshot_path and os.path.exists(screenshot_path):
-        os.remove(screenshot_path)
+        try:
+            os.remove(screenshot_path)
+            logger.info(f"Screenshot deleted: {screenshot_path} (ID: {game_id})")
+        except Exception as e:
+            logger.error(f"Error deleting screenshot {screenshot_path}: {e}")
 
 
 # SQLite функции
@@ -221,6 +232,7 @@ def load_games():
             game["display_link"] = ""
 
     conn.close()
+
     return games
 
 
@@ -263,7 +275,7 @@ def add_game(game_data, screenshot_data=None):
 
     conn.commit()
     conn.close()
-    logger.info(f"Added game: {game_data.get('title')} (ID: {game_id})")
+    logger.info(f"Added game: '{game_data.get('title')}' (ID: {game_id})")
     return True
 
 
@@ -284,11 +296,11 @@ def update_game(game_id, game_data, screenshot_data=None):
     new_screenshot_path = old_screenshot_path
     if screenshot_data == "":  # Удалить скриншот
         if old_screenshot_path:
-            delete_screenshot(old_screenshot_path)
+            delete_screenshot(old_screenshot_path, game_id)
             new_screenshot_path = ""
     elif screenshot_data:  # Новый скриншот
         if old_screenshot_path:
-            delete_screenshot(old_screenshot_path)
+            delete_screenshot(old_screenshot_path, game_id)
         new_screenshot_path = save_screenshot(
             screenshot_data, game_id, game_data.get("title", "")
         )
@@ -316,7 +328,7 @@ def update_game(game_id, game_data, screenshot_data=None):
 
     conn.commit()
     conn.close()
-    logger.info(f"Updated game ID: {game_id}")
+    logger.info(f"Updated game: '{game_data.get('title')}' (ID: {game_id})")
     return True
 
 
@@ -329,16 +341,26 @@ def delete_game(game_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Получаем и удаляем скриншот
-    cursor.execute("SELECT screenshot_path FROM games WHERE id = ?", (game_id,))
-    if result := cursor.fetchone():
-        delete_screenshot(result[0])
+    # Получаем название игры для логов и путь к скриншоту
+    cursor.execute("SELECT title, screenshot_path FROM games WHERE id = ?", (game_id,))
+    result = cursor.fetchone()
 
+    if not result:
+        conn.close()
+        return False
+
+    game_title, screenshot_path = result
+
+    # Удаляем скриншот
+    if screenshot_path:
+        delete_screenshot(screenshot_path, game_id)
+
+    # Удаляем игру из БД
     cursor.execute("DELETE FROM games WHERE id = ?", (game_id,))
     conn.commit()
     conn.close()
 
-    logger.info(f"Deleted game ID: {game_id}")
+    logger.info(f"Deleted game: '{game_title}' (ID: {game_id})")
     return True
 
 
@@ -363,15 +385,17 @@ def get_statistics():
 
     status_counts = {}
     for status in ["completed", "playing", "planned", "dropped"]:
-        cursor.execute(f'SELECT COUNT(*) FROM games WHERE status = "{status}"')
+        cursor.execute("SELECT COUNT(*) FROM games WHERE status = ?", (status,))
         status_counts[status] = cursor.fetchone()[0]
 
     conn.close()
+    logger.info(f"Statistics: total {total_games} games")
+    logger.info("=" * 40)
     return {"total_games": total_games, **status_counts}
 
 
 if __name__ == "__main__":
-    print(f"🚀 Запуск {APP_NAME} v{APP_VERSION}...")
+    print(f"🚀 Launching {APP_NAME} v{APP_VERSION}...")
     ensure_dirs()
     init_db()
 
