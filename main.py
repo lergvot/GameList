@@ -27,7 +27,7 @@ def normalize_filename(name):
     if not name:
         return "unknown"
     name = re.sub(r"[^\w\s\u0400-\u04FF-]", "_", name)
-    return name.replace(" ", "_").replace("_+", "_")[:100].strip("_")
+    return re.sub(r"_+", "_", name.replace(" ", "_"))[:100].strip("_")
 
 
 def optimize_screenshot(image_data, max_width=1366, quality=85):
