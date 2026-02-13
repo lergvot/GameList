@@ -5,6 +5,8 @@ import logging
 import os
 import re
 import sqlite3
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import eel
@@ -178,6 +180,21 @@ def get_db_connection():
     conn.create_function("file_exists", 1, sqlite_file_exists)
     conn.create_function("base64_screenshot", 1, sqlite_base64_screenshot)
     return conn
+
+
+# Проверка доступности порта
+def check_port(start_port=8000, num_ports=100):
+    """Проверяет, что порт доступен и возвращает первый свободный порт (int)."""
+    for port in range(start_port, start_port + num_ports):
+        try:
+            urllib.request.urlopen(f"http://localhost:{port}", timeout=0.3)
+            logger.info(f"Port {port} is in use, trying next...")
+        except (urllib.error.URLError, Exception):
+            logger.info(f"Port {port} is available, starting server on this port.")
+            return port
+
+    error_msg = f"Could not find an available port in range {start_port}-{start_port + num_ports - 1}"
+    raise RuntimeError(error_msg)
 
 
 @eel.expose
@@ -398,5 +415,11 @@ if __name__ == "__main__":
     print(f"🚀 Launching {APP_NAME} v{APP_VERSION}...")
     ensure_dirs()
     init_db()
-
-    eel.start("index.html", size=WINDOW_SIZE, position=WINDOW_POSITION)
+    try:
+        free_port = check_port()
+        eel.start(
+            "index.html", size=WINDOW_SIZE, position=WINDOW_POSITION, port=free_port
+        )
+    except RuntimeError as e:
+        logger.error(str(e))
+        exit(1)
