@@ -84,37 +84,6 @@ def ensure_dirs():
     logger.debug(f"Directories checked/created: {DATA_DIR}, {SCREENSHOTS_DIR}")
 
 
-def init_db():
-    """Инициализирует базу данных"""
-    ensure_dirs()
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            version TEXT DEFAULT '',
-            status TEXT DEFAULT 'planned',
-            rating REAL DEFAULT 0,
-            review TEXT DEFAULT '',
-            game_link TEXT DEFAULT '',
-            screenshot_path TEXT DEFAULT '',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """
-    )
-
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
-
-    conn.commit()
-    conn.close()
-    logger.info("Database initialized successfully")
-
-
 def save_screenshot(image_data, game_id, game_title):
     """Сохраняет оптимизированный скриншот"""
     if not image_data:
@@ -156,30 +125,40 @@ def delete_screenshot(screenshot_path, game_id):
 
 
 # SQLite функции
-def sqlite_file_exists(path):
-    return 1 if path and os.path.exists(path) else 0
+def init_db():
+    """Инициализирует базу данных"""
+    ensure_dirs()
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            version TEXT DEFAULT '',
+            status TEXT DEFAULT 'planned',
+            rating REAL DEFAULT 0,
+            review TEXT DEFAULT '',
+            game_link TEXT DEFAULT '',
+            screenshot_path TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """
+    )
 
-def sqlite_base64_screenshot(path):
-    if path and os.path.exists(path):
-        with open(path, "rb") as f:
-            file_extension = Path(path).suffix.lower()
-            image_data = base64.b64encode(f.read()).decode("utf-8")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
 
-            # Определяем MIME тип для data URL
-            if file_extension == ".svg":
-                return f"data:image/svg+xml;base64,{image_data}"
-            else:
-                return f"data:image/webp;base64,{image_data}"
-    return ""
+    conn.commit()
+    conn.close()
+    logger.info("Database initialized successfully")
 
 
 def get_db_connection():
-    """Создает соединение с БД с кастомными функциями"""
-    conn = sqlite3.connect(DB_FILE)
-    conn.create_function("file_exists", 1, sqlite_file_exists)
-    conn.create_function("base64_screenshot", 1, sqlite_base64_screenshot)
-    return conn
+    """Создает соединение с БД"""
+    return sqlite3.connect(DB_FILE)
 
 
 # Проверка доступности порта
@@ -214,13 +193,7 @@ def load_games():
 
     cursor.execute(
         """
-        SELECT *, 
-               CASE 
-                   WHEN screenshot_path != '' AND file_exists(screenshot_path) = 1 
-                   THEN base64_screenshot(screenshot_path)
-                   ELSE ''
-               END as screenshot_data
-        FROM games 
+        SELECT * FROM games 
         ORDER BY 
             CASE status
                 WHEN 'playing' THEN 1
@@ -237,6 +210,26 @@ def load_games():
 
     for game in games:
         game["rating"] = float(game["rating"]) if game["rating"] else 0.0
+
+        # Конвертируем скриншот в base64 если файл существует
+        screenshot_path = game.get("screenshot_path")
+        if screenshot_path and os.path.exists(screenshot_path):
+            try:
+                with open(screenshot_path, "rb") as f:
+                    file_extension = Path(screenshot_path).suffix.lower()
+                    image_data = base64.b64encode(f.read()).decode("utf-8")
+
+                    if file_extension == ".svg":
+                        game["screenshot_data"] = (
+                            f"data:image/svg+xml;base64,{image_data}"
+                        )
+                    else:
+                        game["screenshot_data"] = f"data:image/webp;base64,{image_data}"
+            except Exception as e:
+                logger.error(f"Error loading screenshot {screenshot_path}: {e}")
+                game["screenshot_data"] = ""
+        else:
+            game["screenshot_data"] = ""
 
         if game["game_link"]:
             display_text = (
