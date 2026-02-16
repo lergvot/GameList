@@ -2,7 +2,7 @@
 /dist
 /build
 /tests
-/Game List Manager
+/GameList
 /venv
 __pycache__
 GameList.spec

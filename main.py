@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import sqlite3
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -14,7 +15,9 @@ from PIL import Image
 
 from config import APP_NAME, APP_VERSION, WINDOW_POSITION, WINDOW_SIZE
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 eel.init("web")
@@ -73,15 +76,19 @@ def optimize_screenshot(image_data, max_width=1366, quality=85):
         )
         return base64.b64encode(output.getvalue()).decode("utf-8")
     except Exception as e:
-        logger.error(f"Error optimizing image: {e}")
+        logger.error(f"Error optimizing image: {e}", exc_info=True)
         return image_data
 
 
 def ensure_dirs():
     """Создает необходимые папки"""
-    DATA_DIR.mkdir(exist_ok=True)
-    SCREENSHOTS_DIR.mkdir(exist_ok=True)
-    logger.debug(f"Directories checked/created: {DATA_DIR}, {SCREENSHOTS_DIR}")
+    try:
+        DATA_DIR.mkdir(exist_ok=True)
+        SCREENSHOTS_DIR.mkdir(exist_ok=True)
+        logger.debug(f"Directories checked/created: {DATA_DIR}, {SCREENSHOTS_DIR}")
+    except OSError as e:
+        logger.critical(f"Failed to create directories: {e}", exc_info=True)
+        raise
 
 
 def save_screenshot(image_data, game_id, game_title):
@@ -120,45 +127,53 @@ def delete_screenshot(screenshot_path, game_id):
         try:
             os.remove(screenshot_path)
             logger.info(f"Screenshot deleted: {screenshot_path} (ID: {game_id})")
-        except Exception as e:
-            logger.error(f"Error deleting screenshot {screenshot_path}: {e}")
+        except OSError as e:
+            logger.warning(f"Error deleting screenshot {screenshot_path}: {e}")
 
 
 # SQLite функции
 def init_db():
     """Инициализирует базу данных"""
     ensure_dirs()
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute(
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS games (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                version TEXT DEFAULT '',
+                status TEXT DEFAULT 'planned',
+                rating REAL DEFAULT 0,
+                review TEXT DEFAULT '',
+                game_link TEXT DEFAULT '',
+                screenshot_path TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         """
-        CREATE TABLE IF NOT EXISTS games (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            version TEXT DEFAULT '',
-            status TEXT DEFAULT 'planned',
-            rating REAL DEFAULT 0,
-            review TEXT DEFAULT '',
-            game_link TEXT DEFAULT '',
-            screenshot_path TEXT DEFAULT '',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """
-    )
 
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
 
-    conn.commit()
-    conn.close()
-    logger.info("Database initialized successfully")
+        conn.commit()
+        conn.close()
+        logger.info("Database initialized successfully")
+    except sqlite3.Error as e:
+        logger.critical(f"Failed to initialize database: {e}", exc_info=True)
+        raise RuntimeError(f"Database initialization failed: {e}")
 
 
 def get_db_connection():
     """Создает соединение с БД"""
-    return sqlite3.connect(DB_FILE)
+    try:
+        return sqlite3.connect(str(DB_FILE), timeout=10)
+    except sqlite3.Error as e:
+        logger.critical(f"Failed to connect to database: {e}", exc_info=True)
+        raise RuntimeError(f"Cannot connect to database: {e}")
 
 
 # Проверка доступности порта
@@ -184,201 +199,284 @@ def get_version():
 @eel.expose
 def load_games():
     """Загружает все игры из базы"""
-    if not DB_FILE.exists():
-        init_db()
+    try:
+        if not DB_FILE.exists():
+            init_db()
 
-    conn = get_db_connection()
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT * FROM games 
-        ORDER BY 
-            CASE status
-                WHEN 'playing' THEN 1
-                WHEN 'completed' THEN 2
-                WHEN 'planned' THEN 3
-                WHEN 'dropped' THEN 4
-                ELSE 5
-            END,
-            created_at DESC
-    """
-    )
+        try:
+            cursor.execute(
+                """
+                SELECT * FROM games 
+                ORDER BY 
+                    CASE status
+                        WHEN 'playing' THEN 1
+                        WHEN 'completed' THEN 2
+                        WHEN 'planned' THEN 3
+                        WHEN 'dropped' THEN 4
+                        ELSE 5
+                    END,
+                    created_at DESC
+            """
+            )
 
-    games = [dict(row) for row in cursor.fetchall()]
+            games = [dict(row) for row in cursor.fetchall()]
 
-    for game in games:
-        game["rating"] = float(game["rating"]) if game["rating"] else 0.0
+            for game in games:
+                game["rating"] = float(game["rating"]) if game["rating"] else 0.0
 
-        # Конвертируем скриншот в base64 если файл существует
-        screenshot_path = game.get("screenshot_path")
-        if screenshot_path and os.path.exists(screenshot_path):
-            try:
-                with open(screenshot_path, "rb") as f:
-                    file_extension = Path(screenshot_path).suffix.lower()
-                    image_data = base64.b64encode(f.read()).decode("utf-8")
+                # Конвертируем скриншот в base64 если файл существует
+                screenshot_path = game.get("screenshot_path")
+                if screenshot_path and os.path.exists(screenshot_path):
+                    try:
+                        with open(screenshot_path, "rb") as f:
+                            file_extension = Path(screenshot_path).suffix.lower()
+                            image_data = base64.b64encode(f.read()).decode("utf-8")
 
-                    if file_extension == ".svg":
-                        game["screenshot_data"] = (
-                            f"data:image/svg+xml;base64,{image_data}"
+                            if file_extension == ".svg":
+                                game["screenshot_data"] = (
+                                    f"data:image/svg+xml;base64,{image_data}"
+                                )
+                            else:
+                                game["screenshot_data"] = (
+                                    f"data:image/webp;base64,{image_data}"
+                                )
+                    except Exception as e:
+                        logger.warning(
+                            f"Error loading screenshot {screenshot_path}: {e}"
                         )
-                    else:
-                        game["screenshot_data"] = f"data:image/webp;base64,{image_data}"
-            except Exception as e:
-                logger.error(f"Error loading screenshot {screenshot_path}: {e}")
-                game["screenshot_data"] = ""
-        else:
-            game["screenshot_data"] = ""
+                        game["screenshot_data"] = ""
+                else:
+                    game["screenshot_data"] = ""
 
-        if game["game_link"]:
-            display_text = (
-                game["game_link"].replace("https://", "").replace("http://", "")
-            )
-            game["display_link"] = (
-                display_text[:27] + "..." if len(display_text) > 30 else display_text
-            )
-        else:
-            game["display_link"] = ""
+                if game["game_link"]:
+                    display_text = (
+                        game["game_link"].replace("https://", "").replace("http://", "")
+                    )
+                    game["display_link"] = (
+                        display_text[:27] + "..."
+                        if len(display_text) > 30
+                        else display_text
+                    )
+                else:
+                    game["display_link"] = ""
 
-    conn.close()
+            return games
+        finally:
+            conn.close()
 
-    return games
+    except sqlite3.Error as e:
+        logger.error(f"Database error in load_games: {e}", exc_info=True)
+        return []
+    except Exception as e:
+        logger.error(f"Unexpected error in load_games: {e}", exc_info=True)
+        return []
 
 
 @eel.expose
 def add_game(game_data, screenshot_data=None):
     """Добавляет новую игру"""
-    if not DB_FILE.exists():
-        init_db()
+    try:
+        if not DB_FILE.exists():
+            init_db()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        INSERT INTO games (title, version, status, rating, review, game_link)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """,
-        (
-            game_data.get("title", ""),
-            game_data.get("version", ""),
-            game_data.get("status", "planned"),
-            float(game_data.get("rating", 0)),
-            game_data.get("review", ""),
-            game_data.get("game_link", ""),
-        ),
-    )
-
-    game_id = cursor.lastrowid
-
-    # Сохраняем скриншот если есть
-    if screenshot_data:
-        screenshot_path = save_screenshot(
-            screenshot_data, game_id, game_data.get("title", "")
-        )
-        if screenshot_path:
+        try:
             cursor.execute(
-                "UPDATE games SET screenshot_path = ? WHERE id = ?",
-                (screenshot_path, game_id),
+                """
+                INSERT INTO games (title, version, status, rating, review, game_link)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    game_data.get("title", ""),
+                    game_data.get("version", ""),
+                    game_data.get("status", "planned"),
+                    float(game_data.get("rating", 0)),
+                    game_data.get("review", ""),
+                    game_data.get("game_link", ""),
+                ),
             )
 
-    conn.commit()
-    conn.close()
-    logger.info(f"Added game: '{game_data.get('title')}' (ID: {game_id})")
-    return True
+            game_id = cursor.lastrowid
+
+            # Сохраняем скриншот если есть
+            if screenshot_data:
+                screenshot_path = save_screenshot(
+                    screenshot_data, game_id, game_data.get("title", "")
+                )
+                if screenshot_path:
+                    cursor.execute(
+                        "UPDATE games SET screenshot_path = ? WHERE id = ?",
+                        (screenshot_path, game_id),
+                    )
+
+            conn.commit()
+            logger.info(f"Added game: '{game_data.get('title')}' (ID: {game_id})")
+            return True
+        except sqlite3.IntegrityError as e:
+            conn.rollback()
+            logger.warning(f"Integrity error when adding game: {e}")
+            return False
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error adding game: {e}", exc_info=True)
+            return False
+        finally:
+            conn.close()
+
+    except Exception as e:
+        logger.error(f"Unexpected error in add_game: {e}", exc_info=True)
+        return False
 
 
 @eel.expose
 def update_game(game_id, game_data, screenshot_data=None):
     """Обновляет данные игры"""
-    if not DB_FILE.exists():
-        init_db()
+    try:
+        if not DB_FILE.exists():
+            init_db()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    # Получаем старый путь к скриншоту
-    cursor.execute("SELECT screenshot_path FROM games WHERE id = ?", (game_id,))
-    old_screenshot_path = cursor.fetchone()[0]
+        try:
+            # Получаем старый путь к скриншоту
+            cursor.execute("SELECT screenshot_path FROM games WHERE id = ?", (game_id,))
+            result = cursor.fetchone()
+            old_screenshot_path = result[0] if result else None
 
-    # Обрабатываем скриншот
-    new_screenshot_path = old_screenshot_path
-    if screenshot_data == "":  # Удалить скриншот
-        if old_screenshot_path:
-            delete_screenshot(old_screenshot_path, game_id)
-            new_screenshot_path = ""
-    elif screenshot_data:  # Новый скриншот
-        if old_screenshot_path:
-            delete_screenshot(old_screenshot_path, game_id)
-        new_screenshot_path = save_screenshot(
-            screenshot_data, game_id, game_data.get("title", "")
-        )
+            # Обрабатываем скриншот
+            new_screenshot_path = old_screenshot_path
+            if screenshot_data == "":  # Удалить скриншот
+                if old_screenshot_path:
+                    delete_screenshot(old_screenshot_path, game_id)
+                    new_screenshot_path = ""
+            elif screenshot_data:  # Новый скриншот
+                if old_screenshot_path:
+                    delete_screenshot(old_screenshot_path, game_id)
+                new_screenshot_path = save_screenshot(
+                    screenshot_data, game_id, game_data.get("title", "")
+                )
 
-    # Обновляем данные игры
-    cursor.execute(
-        """
-        UPDATE games 
-        SET title = ?, version = ?, status = ?, rating = ?, 
-            review = ?, game_link = ?, screenshot_path = ?, 
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    """,
-        (
-            game_data.get("title", ""),
-            game_data.get("version", ""),
-            game_data.get("status", "planned"),
-            float(game_data.get("rating", 0)),
-            game_data.get("review", ""),
-            game_data.get("game_link", ""),
-            new_screenshot_path,
-            game_id,
-        ),
-    )
+            # Обновляем данные игры
+            cursor.execute(
+                """
+                UPDATE games 
+                SET title = ?, version = ?, status = ?, rating = ?, 
+                    review = ?, game_link = ?, screenshot_path = ?, 
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            """,
+                (
+                    game_data.get("title", ""),
+                    game_data.get("version", ""),
+                    game_data.get("status", "planned"),
+                    float(game_data.get("rating", 0)),
+                    game_data.get("review", ""),
+                    game_data.get("game_link", ""),
+                    new_screenshot_path,
+                    game_id,
+                ),
+            )
 
-    conn.commit()
-    conn.close()
-    logger.info(f"Updated game: '{game_data.get('title')}' (ID: {game_id})")
-    return True
+            conn.commit()
+            logger.info(f"Updated game: '{game_data.get('title')}' (ID: {game_id})")
+            return True
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error updating game: {e}", exc_info=True)
+            return False
+        finally:
+            conn.close()
+
+    except Exception as e:
+        logger.error(f"Unexpected error in update_game: {e}", exc_info=True)
+        return False
 
 
 @eel.expose
 def delete_game(game_id):
     """Удаляет игру"""
-    if not DB_FILE.exists():
-        return True
+    try:
+        if not DB_FILE.exists():
+            return True
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    # Получаем название игры для логов и путь к скриншоту
-    cursor.execute("SELECT title, screenshot_path FROM games WHERE id = ?", (game_id,))
-    result = cursor.fetchone()
+        try:
+            # Получаем название игры для логов и путь к скриншоту
+            cursor.execute(
+                "SELECT title, screenshot_path FROM games WHERE id = ?", (game_id,)
+            )
+            result = cursor.fetchone()
 
-    if not result:
-        conn.close()
+            if not result:
+                return False
+
+            game_title, screenshot_path = result
+
+            # Удаляем скриншот
+            if screenshot_path:
+                delete_screenshot(screenshot_path, game_id)
+
+            # Удаляем игру из БД
+            cursor.execute("DELETE FROM games WHERE id = ?", (game_id,))
+            conn.commit()
+
+            logger.info(f"Deleted game: '{game_title}' (ID: {game_id})")
+            return True
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Error deleting game: {e}", exc_info=True)
+            return False
+        finally:
+            conn.close()
+
+    except Exception as e:
+        logger.error(f"Unexpected error in delete_game: {e}", exc_info=True)
         return False
-
-    game_title, screenshot_path = result
-
-    # Удаляем скриншот
-    if screenshot_path:
-        delete_screenshot(screenshot_path, game_id)
-
-    # Удаляем игру из БД
-    cursor.execute("DELETE FROM games WHERE id = ?", (game_id,))
-    conn.commit()
-    conn.close()
-
-    logger.info(f"Deleted game: '{game_title}' (ID: {game_id})")
-    return True
 
 
 @eel.expose
 def get_statistics():
     """Получает статистику по играм"""
-    if not DB_FILE.exists():
-        init_db()
+    try:
+        if not DB_FILE.exists():
+            init_db()
+            return {
+                "total_games": 0,
+                "completed": 0,
+                "playing": 0,
+                "planned": 0,
+                "dropped": 0,
+            }
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("SELECT COUNT(*) FROM games")
+            total_games = cursor.fetchone()[0]
+
+            status_counts = {}
+            for status in ["completed", "playing", "planned", "dropped"]:
+                cursor.execute("SELECT COUNT(*) FROM games WHERE status = ?", (status,))
+                status_counts[status] = cursor.fetchone()[0]
+
+            logger.info(f"Statistics: total {total_games} games")
+            logger.info("=" * 40)
+            return {"total_games": total_games, **status_counts}
+        finally:
+            conn.close()
+
+    except Exception as e:
+        logger.error(f"Error getting statistics: {e}", exc_info=True)
         return {
             "total_games": 0,
             "completed": 0,
@@ -387,32 +485,31 @@ def get_statistics():
             "dropped": 0,
         }
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
 
-    cursor.execute("SELECT COUNT(*) FROM games")
-    total_games = cursor.fetchone()[0]
-
-    status_counts = {}
-    for status in ["completed", "playing", "planned", "dropped"]:
-        cursor.execute("SELECT COUNT(*) FROM games WHERE status = ?", (status,))
-        status_counts[status] = cursor.fetchone()[0]
-
-    conn.close()
-    logger.info(f"Statistics: total {total_games} games")
-    logger.info("=" * 40)
-    return {"total_games": total_games, **status_counts}
+def on_close(page, sockets):
+    """Callback при закрытии приложения"""
+    logger.info("Application closed")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    print(f"🚀 Launching {APP_NAME} v{APP_VERSION}...")
-    ensure_dirs()
-    init_db()
     try:
+        print(f"🚀 Launching {APP_NAME} v{APP_VERSION}...")
+        ensure_dirs()
+        init_db()
         free_port = check_port()
+        logger.info(f"Starting server on port {free_port}")
         eel.start(
-            "index.html", size=WINDOW_SIZE, position=WINDOW_POSITION, port=free_port
+            "index.html",
+            size=WINDOW_SIZE,
+            position=WINDOW_POSITION,
+            port=free_port,
+            close_callback=on_close,
+            disable_cache=True,
         )
     except RuntimeError as e:
-        logger.error(str(e))
-        exit(1)
+        logger.error(f"Runtime error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.critical(f"Fatal error: {e}", exc_info=True)
+        sys.exit(1)
