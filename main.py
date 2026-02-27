@@ -4,27 +4,38 @@ import io
 import logging
 import os
 import re
+import socket
 import sqlite3
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 import eel
 from PIL import Image
 
-from config import APP_NAME, APP_VERSION, WINDOW_POSITION, WINDOW_SIZE
+from config import (
+    APP_NAME,
+    APP_VERSION,
+    DATA_DIR,
+    DB_FILE,
+    DB_TIMEOUT,
+    SCREENSHOTS_DIR,
+    IMAGE_MAX_WIDTH,
+    IMAGE_QUALITY,
+    PORT_RANGE,
+    PORT_START,
+    WINDOW_POSITION,
+    WINDOW_SIZE,
+)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-eel.init("web")
+# Символ разделителя для логов
+LOG_SEPARATOR = "─" * 60
 
-DATA_DIR = Path("data")
-DB_FILE = DATA_DIR / "games.db"
-SCREENSHOTS_DIR = DATA_DIR / "screenshots"
+eel.init("web")
 
 
 def normalize_filename(name):
@@ -35,7 +46,7 @@ def normalize_filename(name):
     return re.sub(r"_+", "_", name.replace(" ", "_"))[:100].strip("_")
 
 
-def optimize_screenshot(image_data, max_width=1366, quality=85):
+def optimize_screenshot(image_data, max_width=IMAGE_MAX_WIDTH, quality=IMAGE_QUALITY):
     """Оптимизирует изображение в WebP, пропускает SVG"""
     try:
         if "," in image_data:
@@ -170,25 +181,50 @@ def init_db():
 def get_db_connection():
     """Создает соединение с БД"""
     try:
-        return sqlite3.connect(str(DB_FILE), timeout=10)
+        return sqlite3.connect(str(DB_FILE), timeout=DB_TIMEOUT)
     except sqlite3.Error as e:
         logger.critical(f"Failed to connect to database: {e}", exc_info=True)
         raise RuntimeError(f"Cannot connect to database: {e}")
 
 
+class DatabaseConnection:
+    """Контекстный менеджер для работы с БД"""
+
+    def __init__(self):
+        self.conn = None
+
+    def __enter__(self):
+        self.conn = get_db_connection()
+        self.conn.row_factory = sqlite3.Row
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.conn:
+            self.conn.close()
+        if exc_type is not None:
+            logger.error(f"Database error: {exc_val}", exc_info=True)
+        return False
+
+
 # Проверка доступности порта
-def check_port(start_port=8000, num_ports=100):
+def check_port(start_port: int = PORT_START, num_ports: int = PORT_RANGE) -> int:
     """Проверяет, что порт доступен и возвращает первый свободный порт (int)."""
     for port in range(start_port, start_port + num_ports):
-        try:
-            urllib.request.urlopen(f"http://localhost:{port}", timeout=0.3)
-            logger.info(f"Port {port} is in use, trying next...")
-        except (urllib.error.URLError, Exception):
-            logger.info(f"Port {port} is available, starting server on this port.")
-            return port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                # Пытаемся привязаться к порту
+                s.bind(("localhost", port))
+                # Если успешно — порт свободен
+                logger.info(f"Port {port} is available.")
+                return port
+            except OSError:
+                # Порт занят — пробуем следующий
+                logger.info(f"Port {port} is in use, trying next...")
+                continue
 
-    error_msg = f"Could not find an available port in range {start_port}-{start_port + num_ports - 1}"
-    raise RuntimeError(error_msg)
+    raise RuntimeError(
+        f"No free port found in range {start_port}-{start_port + num_ports - 1}"
+    )
 
 
 @eel.expose
@@ -200,18 +236,13 @@ def get_version():
 def load_games():
     """Загружает все игры из базы"""
     try:
-        if not DB_FILE.exists():
-            init_db()
+        with DatabaseConnection() as conn:
+            cursor = conn.cursor()
 
-        conn = get_db_connection()
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-
-        try:
             cursor.execute(
                 """
-                SELECT * FROM games 
-                ORDER BY 
+                SELECT * FROM games
+                ORDER BY
                     CASE status
                         WHEN 'playing' THEN 1
                         WHEN 'completed' THEN 2
@@ -265,8 +296,6 @@ def load_games():
                     game["display_link"] = ""
 
             return games
-        finally:
-            conn.close()
 
     except sqlite3.Error as e:
         logger.error(f"Database error in load_games: {e}", exc_info=True)
@@ -280,13 +309,9 @@ def load_games():
 def add_game(game_data, screenshot_data=None):
     """Добавляет новую игру"""
     try:
-        if not DB_FILE.exists():
-            init_db()
+        with DatabaseConnection() as conn:
+            cursor = conn.cursor()
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        try:
             cursor.execute(
                 """
                 INSERT INTO games (title, version, status, rating, review, game_link)
@@ -318,17 +343,13 @@ def add_game(game_data, screenshot_data=None):
             conn.commit()
             logger.info(f"Added game: '{game_data.get('title')}' (ID: {game_id})")
             return True
-        except sqlite3.IntegrityError as e:
-            conn.rollback()
-            logger.warning(f"Integrity error when adding game: {e}")
-            return False
-        except Exception as e:
-            conn.rollback()
-            logger.error(f"Error adding game: {e}", exc_info=True)
-            return False
-        finally:
-            conn.close()
 
+    except sqlite3.IntegrityError as e:
+        logger.warning(f"Integrity error when adding game: {e}")
+        return False
+    except (ValueError, TypeError) as e:
+        logger.error(f"Invalid game data: {e}")
+        return False
     except Exception as e:
         logger.error(f"Unexpected error in add_game: {e}", exc_info=True)
         return False
@@ -338,13 +359,9 @@ def add_game(game_data, screenshot_data=None):
 def update_game(game_id, game_data, screenshot_data=None):
     """Обновляет данные игры"""
     try:
-        if not DB_FILE.exists():
-            init_db()
+        with DatabaseConnection() as conn:
+            cursor = conn.cursor()
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        try:
             # Получаем старый путь к скриншоту
             cursor.execute("SELECT screenshot_path FROM games WHERE id = ?", (game_id,))
             result = cursor.fetchone()
@@ -366,9 +383,9 @@ def update_game(game_id, game_data, screenshot_data=None):
             # Обновляем данные игры
             cursor.execute(
                 """
-                UPDATE games 
-                SET title = ?, version = ?, status = ?, rating = ?, 
-                    review = ?, game_link = ?, screenshot_path = ?, 
+                UPDATE games
+                SET title = ?, version = ?, status = ?, rating = ?,
+                    review = ?, game_link = ?, screenshot_path = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """,
@@ -387,13 +404,10 @@ def update_game(game_id, game_data, screenshot_data=None):
             conn.commit()
             logger.info(f"Updated game: '{game_data.get('title')}' (ID: {game_id})")
             return True
-        except Exception as e:
-            conn.rollback()
-            logger.error(f"Error updating game: {e}", exc_info=True)
-            return False
-        finally:
-            conn.close()
 
+    except (ValueError, TypeError) as e:
+        logger.error(f"Invalid game data: {e}")
+        return False
     except Exception as e:
         logger.error(f"Unexpected error in update_game: {e}", exc_info=True)
         return False
@@ -403,13 +417,9 @@ def update_game(game_id, game_data, screenshot_data=None):
 def delete_game(game_id):
     """Удаляет игру"""
     try:
-        if not DB_FILE.exists():
-            return True
+        with DatabaseConnection() as conn:
+            cursor = conn.cursor()
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        try:
             # Получаем название игры для логов и путь к скриншоту
             cursor.execute(
                 "SELECT title, screenshot_path FROM games WHERE id = ?", (game_id,)
@@ -431,12 +441,6 @@ def delete_game(game_id):
 
             logger.info(f"Deleted game: '{game_title}' (ID: {game_id})")
             return True
-        except Exception as e:
-            conn.rollback()
-            logger.error(f"Error deleting game: {e}", exc_info=True)
-            return False
-        finally:
-            conn.close()
 
     except Exception as e:
         logger.error(f"Unexpected error in delete_game: {e}", exc_info=True)
@@ -447,20 +451,9 @@ def delete_game(game_id):
 def get_statistics():
     """Получает статистику по играм"""
     try:
-        if not DB_FILE.exists():
-            init_db()
-            return {
-                "total_games": 0,
-                "completed": 0,
-                "playing": 0,
-                "planned": 0,
-                "dropped": 0,
-            }
+        with DatabaseConnection() as conn:
+            cursor = conn.cursor()
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        try:
             cursor.execute("SELECT COUNT(*) FROM games")
             total_games = cursor.fetchone()[0]
 
@@ -469,11 +462,8 @@ def get_statistics():
                 cursor.execute("SELECT COUNT(*) FROM games WHERE status = ?", (status,))
                 status_counts[status] = cursor.fetchone()[0]
 
-            logger.info(f"Statistics: total {total_games} games")
-            logger.info("=" * 40)
+            logger.info("Statistics: total %d games", total_games)
             return {"total_games": total_games, **status_counts}
-        finally:
-            conn.close()
 
     except Exception as e:
         logger.error(f"Error getting statistics: {e}", exc_info=True)
@@ -494,11 +484,13 @@ def on_close(page, sockets):
 
 if __name__ == "__main__":
     try:
-        print(f"🚀 Launching {APP_NAME} v{APP_VERSION}...")
+        logger.info(LOG_SEPARATOR)
+        logger.info("Launching %s v%s...", APP_NAME, APP_VERSION)
         ensure_dirs()
         init_db()
         free_port = check_port()
-        logger.info(f"Starting server on port {free_port}")
+        logger.info("Starting server on port %d", free_port)
+        logger.info(LOG_SEPARATOR)
         eel.start(
             "index.html",
             size=WINDOW_SIZE,
@@ -508,8 +500,8 @@ if __name__ == "__main__":
             disable_cache=True,
         )
     except RuntimeError as e:
-        logger.error(f"Runtime error: {e}")
+        logger.error("Runtime error: %s", e)
         sys.exit(1)
     except Exception as e:
-        logger.critical(f"Fatal error: {e}", exc_info=True)
+        logger.critical("Fatal error: %s", e, exc_info=True)
         sys.exit(1)

@@ -2,6 +2,7 @@
 """
 Конфигурационный файл приложения.
 """
+from pathlib import Path
 
 # Версия приложения
 APP_VERSION = "1.13.0"
@@ -24,3 +25,19 @@ BUILD_CONFIG = {
     # Для release сборки - префикс архивов
     "release_prefix": "GameList",
 }
+
+# Пути к данным
+DATA_DIR = Path("data")
+DB_FILE = DATA_DIR / "app.db"
+SCREENSHOTS_DIR = DATA_DIR / "screenshots"
+
+# Настройки базы данных
+DB_TIMEOUT = 10  # таймаут подключения к БД (секунды)
+
+# Настройки оптимизации изображений
+IMAGE_MAX_WIDTH = 1366
+IMAGE_QUALITY = 85
+
+# Настройки проверки порта
+PORT_START = 8000
+PORT_RANGE = 25  # количество портов для проверки
