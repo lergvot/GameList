@@ -26,7 +26,7 @@
   --color-accent-hover: #106ebe;
   --color-accent-bg: rgba(0, 120, 212, 0.08);
 
-  /* Status colors - БОЛЕЕ НЕЙТРАЛЬНЫЕ */
+  /* Status colors */
   --color-status-playing: #4e94ce;
   --color-status-playing-bg: rgba(78, 148, 206, 0.15);
   --color-status-completed: #2e8b57;
@@ -62,7 +62,13 @@
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
 
   /* ============ TYPOGRAPHY ============ */
-  font-family: "Segoe UI", "Inter", Roboto, system-ui, -apple-system, sans-serif;
+  font-family:
+    "Segoe UI",
+    "Inter",
+    Roboto,
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 14px;
   line-height: 1.4;
 }
@@ -124,10 +130,10 @@ p {
    ========================================================================== */
 
 .app {
-  max-width: 1200px;
+  max-width: 1920px;
+  min-width: 800px;
   margin: var(--space-md) auto;
   padding: var(--space-md);
-  min-width: 800px;
   height: calc(100vh - 24px);
   display: flex;
   flex-direction: column;
@@ -271,7 +277,9 @@ body.theme-light #theme-toggle {
   min-height: 32px;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease,
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
     color 0.15s ease;
 }
 
@@ -1391,7 +1399,9 @@ body.theme-light #theme-toggle {
   pointer-events: none;
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   box-shadow: var(--shadow-md);
   max-width: 300px;
   word-wrap: break-word;
