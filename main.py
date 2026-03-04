@@ -211,6 +211,7 @@ def check_port(start_port: int = PORT_START, num_ports: int = PORT_RANGE) -> int
     """Проверяет, что порт доступен и возвращает первый свободный порт (int)."""
     for port in range(start_port, start_port + num_ports):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 # Пытаемся привязаться к порту
                 s.bind(("localhost", port))
@@ -476,12 +477,6 @@ def get_statistics():
         }
 
 
-def on_close(page, sockets):
-    """Callback при закрытии приложения"""
-    logger.info("Application closed")
-    sys.exit(0)
-
-
 if __name__ == "__main__":
     try:
         logger.info(LOG_SEPARATOR)
@@ -496,9 +491,11 @@ if __name__ == "__main__":
             size=WINDOW_SIZE,
             position=WINDOW_POSITION,
             port=free_port,
-            close_callback=on_close,
             disable_cache=True,
         )
+    except KeyboardInterrupt:
+        logger.info("Application interrupted by user")
+        sys.exit(0)
     except RuntimeError as e:
         logger.error("Runtime error: %s", e)
         sys.exit(1)
