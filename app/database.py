@@ -3,8 +3,10 @@
 import sqlite3
 from typing import Optional
 
-from app.logger import *
+from app.logger import get_logger
 from config import DB_FILE, DB_TIMEOUT
+
+logger = get_logger(__name__)
 
 
 class GameRepository:

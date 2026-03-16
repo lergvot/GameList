@@ -8,8 +8,10 @@ import re
 from PIL import Image
 
 from app.database import *
-from app.logger import *
+from app.logger import get_logger
 from config import DATA_DIR, IMAGE_MAX_WIDTH, IMAGE_QUALITY, SCREENSHOTS_DIR
+
+logger = get_logger(__name__)
 
 
 def normalize_filename(name):
@@ -99,7 +101,7 @@ def save_screenshot(image_data, game_id, game_title):
         with open(filepath, "wb") as f:
             f.write(image_bytes)
 
-        logger.info(f"Screenshot saved: {filename} (ID: {game_id})")
+        logger.info(f"Screenshot saved (ID: {game_id}): {filename}")
         return str(filepath)
     except Exception as e:
         logger.error(f"Error saving screenshot for game {game_id}: {e}")
@@ -111,6 +113,8 @@ def delete_screenshot(screenshot_path, game_id):
     if screenshot_path and os.path.exists(screenshot_path):
         try:
             os.remove(screenshot_path)
-            logger.info(f"Screenshot deleted: {screenshot_path} (ID: {game_id})")
+            logger.info(f"Screenshot deleted (ID: {game_id}): {screenshot_path}")
         except OSError as e:
-            logger.warning(f"Error deleting screenshot {screenshot_path}: {e}")
+            logger.warning(
+                f"Error deleting screenshot (ID: {game_id}): {screenshot_path}: {e}"
+            )

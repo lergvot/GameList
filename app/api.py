@@ -8,8 +8,10 @@ import eel
 
 from app.database import GameRepository
 from app.image_utils import delete_screenshot, save_screenshot
-from app.logger import logger
+from app.logger import get_logger
 from config import APP_VERSION
+
+logger = get_logger(__name__)
 
 
 @eel.expose
@@ -86,7 +88,7 @@ def add_game(game_data, screenshot_data=None):
             if screenshot_path:
                 repo.update_screenshot_path(game_id, screenshot_path)
 
-        logger.info(f"Added game: '{game_data.get('title')}' (ID: {game_id})")
+        logger.info(f"Added game (ID: {game_id}): '{game_data.get('title')}'")
         return True
 
     except Exception as e:
@@ -120,7 +122,7 @@ def update_game(game_id, game_data, screenshot_data=None):
         success = repo.update_game(game_id, game_data, new_screenshot_path)
 
         if success:
-            logger.info(f"Updated game: '{game_data.get('title')}' (ID: {game_id})")
+            logger.info(f"Updated game (ID: {game_id}): '{game_data.get('title')}'")
         return success
 
     except (ValueError, TypeError) as e:
@@ -154,7 +156,7 @@ def delete_game(game_id):
         success = repo.delete_game(game_id)
 
         if success:
-            logger.info(f"Deleted game: '{game_title}' (ID: {game_id})")
+            logger.info(f"Deleted game (ID: {game_id}): '{game_title}'")
         return success
 
     except Exception as e:

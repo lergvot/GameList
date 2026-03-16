@@ -8,7 +8,7 @@ import eel
 from app.api import *
 from app.database import init_db
 from app.image_utils import ensure_dirs
-from app.logger import logger, LOG_SEPARATOR
+from app.logger import get_logger, LOG_SEPARATOR
 from config import (
     APP_NAME,
     APP_VERSION,
@@ -17,6 +17,8 @@ from config import (
     WINDOW_POSITION,
     WINDOW_SIZE,
 )
+
+logger = get_logger(__name__)
 
 
 def check_port(start_port: int = PORT_START, num_ports: int = PORT_RANGE) -> int:
