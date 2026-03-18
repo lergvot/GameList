@@ -5,7 +5,7 @@
 from pathlib import Path
 
 # Версия приложения
-APP_VERSION = "1.15.0"
+APP_VERSION = "1.15.1"
 
 # Название приложения
 APP_NAME = "GameList"
