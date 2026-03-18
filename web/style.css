@@ -36,6 +36,12 @@
   --color-status-dropped: #c44d56;
   --color-status-dropped-bg: rgba(196, 77, 86, 0.15);
 
+  /* Version indicator colors */
+  --color-version-current: #4caf50;
+  --color-version-current-bg: rgba(76, 175, 80, 0.2);
+  --color-version-update: #ffc107;
+  --color-version-update-bg: rgba(255, 193, 7, 0.2);
+
   /* State colors */
   --color-hover: rgba(255, 255, 255, 0.07);
   --color-active: rgba(255, 255, 255, 0.1);
@@ -178,6 +184,24 @@ p {
   padding: 2px 6px;
   background: var(--color-hover);
   border-radius: var(--radius-xs);
+  transition:
+    background-color 0.2s ease,
+    cursor 0.2s ease;
+}
+
+.app-header__version--current {
+  background: var(--color-version-current-bg);
+  color: var(--color-version-current);
+}
+
+.app-header__version--update {
+  background: var(--color-version-update-bg);
+  color: var(--color-version-update);
+  cursor: pointer;
+}
+
+.app-header__version--update:hover {
+  background: rgba(255, 193, 7, 0.3);
 }
 
 .app-header__description {
@@ -1659,6 +1683,75 @@ body.modal-open {
 }
 .theme-light .app-overlay {
   background: rgba(255, 255, 255, 0.8);
+}
+
+/* Update version indicator for light theme */
+.theme-light .app-header__version--current {
+  background: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+}
+
+.theme-light .app-header__version--update {
+  background: rgba(255, 193, 7, 0.25);
+  color: #f57c00;
+}
+
+.theme-light .app-header__version--update:hover {
+  background: rgba(255, 193, 7, 0.35);
+}
+
+/* ==========================================================================
+   22. UPDATE MODAL
+   ========================================================================== */
+
+.update-info {
+  text-align: left;
+  margin-bottom: var(--space-lg);
+}
+
+.update-info__version {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.update-info__version:last-of-type {
+  margin-bottom: var(--space-sm);
+}
+
+.update-info__date {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.update-info__notes {
+  margin-top: var(--space-md);
+}
+
+.update-info__notes p {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.update-info__notes-content {
+  background: var(--color-hover);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 /* ==========================================================================

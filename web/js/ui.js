@@ -74,7 +74,7 @@ function renderGameCards(games, helpers) {
               escapedGame.screenshot
                 ? `<img src="${escapedGame.screenshot}" alt="${escapedGame.title}" loading="lazy">`
                 : `<div class="game-card__image-placeholder">${t(
-                    "no_image"
+                    "no_image",
                   )}</div>`
             }
           </div>
@@ -88,7 +88,7 @@ function renderGameCards(games, helpers) {
             <button class="game-card__copy" 
                     onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.title.replace(
                       /'/g,
-                      "\\'"
+                      "\\'",
                     )}')"
                     data-tooltip="${t("copy_title_tooltip")}">
               ⧉
@@ -97,8 +97,8 @@ function renderGameCards(games, helpers) {
           
           <div class="game-card__content">
             <div class="game-card__version">${t("version_label")}: ${
-        escapedGame.version || "—"
-      }</div>
+              escapedGame.version || "—"
+            }</div>
             <div class="game-card__review">${escapedGame.review}</div>
           </div>
         </div>
@@ -134,7 +134,7 @@ function renderGameCards(games, helpers) {
                     <button class="btn btn--icon" 
                       onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.gameLink.replace(
                         /'/g,
-                        "\\'"
+                        "\\'",
                       )}')"
                       data-i18n-title="${t("copy_link_tooltip")}"
                       data-tooltip="${t("copy_link_tooltip")}">
@@ -236,10 +236,10 @@ export function sortGames(games, sortType) {
     default:
       sorted.sort((a, b) => {
         const dateA = new Date(
-          a.updated_at || a.created_at || "1970-01-01"
+          a.updated_at || a.created_at || "1970-01-01",
         ).getTime();
         const dateB = new Date(
-          b.updated_at || b.created_at || "1970-01-01"
+          b.updated_at || b.created_at || "1970-01-01",
         ).getTime();
         return dateB - dateA;
       });
@@ -254,7 +254,7 @@ function updateUploadPlaceholder() {
   if (!screenshotPreview) return;
 
   let placeholder = screenshotPreview.querySelector(
-    ".upload-area__placeholder"
+    ".upload-area__placeholder",
   );
   if (!placeholder) {
     placeholder = document.createElement("span");
@@ -345,7 +345,7 @@ export function showView(game) {
       : "—";
 
   document.getElementById("view-version").textContent = `${t(
-    "version_label"
+    "version_label",
   )}: ${game.version || "—"}`;
 
   const statusEl = document.getElementById("view-status");
@@ -424,7 +424,7 @@ export async function onConfirmDelete(state) {
   try {
     // Находим игру в списке, чтобы получить название
     const gameToDelete = state.allGames?.find(
-      (game) => game.id === state.selectedToDelete
+      (game) => game.id === state.selectedToDelete,
     );
     const gameTitle = gameToDelete?.title || state.selectedToDelete;
 
@@ -489,7 +489,7 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
   const similarGames = findSimilarGames(
     searchText,
     state.allGames,
-    currentGameId
+    currentGameId,
   );
 
   if (!similarGames || similarGames.length === 0) {
@@ -576,10 +576,10 @@ export function setupEventHandlers(state) {
   form.addEventListener("submit", (e) => onSubmit(e, state));
 
   screenshotInput.addEventListener("change", (e) =>
-    onScreenshotSelected(e, state)
+    onScreenshotSelected(e, state),
   );
   removeScreenshotBtn.addEventListener("click", () =>
-    onRemoveScreenshot(state)
+    onRemoveScreenshot(state),
   );
   document
     .getElementById("upload-area")
@@ -592,6 +592,14 @@ export function setupEventHandlers(state) {
   document
     .getElementById("confirm-delete")
     .addEventListener("click", () => onConfirmDelete(state));
+
+  // Обработчики для модального окна обновления
+  document
+    .getElementById("update-cancel")
+    .addEventListener("click", () => closeUpdateModal());
+  document
+    .getElementById("update-confirm")
+    .addEventListener("click", () => app.initiateAppUpdate());
 
   searchInput.addEventListener("input", (e) => {
     state.currentSearch = e.target.value.trim().toLowerCase();
@@ -671,7 +679,7 @@ export function setupEventHandlers(state) {
 function lockForm(lock = true, state) {
   const overlay = document.getElementById("form-overlay");
   const formInputs = document.querySelectorAll(
-    "#game-form input, #game-form textarea, #game-form select, #game-form button"
+    "#game-form input, #game-form textarea, #game-form select, #game-form button",
   );
 
   if (lock) {
@@ -735,7 +743,7 @@ async function onSubmit(e, state) {
       showToast(
         gameId
           ? t("game_updated", { title: payload.title })
-          : t("game_added", { title: payload.title })
+          : t("game_added", { title: payload.title }),
       );
     }
   } catch (err) {
@@ -778,7 +786,7 @@ function updateStatusSelectStyle() {
     "form__select--playing",
     "form__select--planned",
     "form__select--completed",
-    "form__select--dropped"
+    "form__select--dropped",
   );
 
   statusSelect.classList.add(`form__select--${value}`);
@@ -795,6 +803,52 @@ function updateBodyScroll() {
   const isModalOpen =
     document.querySelectorAll('[aria-hidden="false"]').length > 0;
   document.body.classList.toggle("modal-open", isModalOpen);
+}
+
+export function showUpdateModal(updateInfo) {
+  const updateModal = document.getElementById("update-modal");
+  if (!updateModal) return;
+
+  // Заполняем информацию об обновлении
+  document.getElementById("update-current-version").textContent =
+    updateInfo.current_version || "—";
+  document.getElementById("update-latest-version").textContent =
+    updateInfo.latest_version || "—";
+
+  const releaseDate = updateInfo.created_at
+    ? formatDateTime(updateInfo.created_at, true)
+    : "—";
+  document.getElementById("update-release-date").textContent = releaseDate;
+
+  // Очищаем markdown из release notes
+  const cleanMarkdown = (text) => {
+    if (!text) return "Описание изменений отсутствует";
+    // Удаляем заголовки markdown (###, ##, #)
+    text = text.replace(/^#+\s*/gm, "");
+    // Заменяем ссылки [текст](url) на просто текст
+    text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+    // Удаляем жирный и курсив синтаксис
+    text = text.replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, "$1");
+    // Очищаем пустые строки в начале/конце
+    return text.trim();
+  };
+
+  const releaseNotes =
+    updateInfo.release_notes || "Описание изменений отсутствует";
+  document.getElementById("update-release-notes").textContent = cleanMarkdown(
+    releaseNotes
+  );
+
+  updateModal.setAttribute("aria-hidden", "false");
+  updateBodyScroll();
+}
+
+export function closeUpdateModal() {
+  const updateModal = document.getElementById("update-modal");
+  if (updateModal) {
+    updateModal.setAttribute("aria-hidden", "true");
+    updateBodyScroll();
+  }
 }
 
 export function filterAndDisplay(state) {
@@ -814,4 +868,6 @@ export default {
   hideDuplicatePopup,
   filterAndDisplay,
   showToast,
+  showUpdateModal,
+  closeUpdateModal,
 };

@@ -29,6 +29,20 @@ export const api = {
       return "unknown";
     }
   },
+  async checkUpdates() {
+    try {
+      return await eel.check_updates()();
+    } catch {
+      return { updateAvailable: false };
+    }
+  },
+  async updateApp(updateInfo) {
+    try {
+      await eel.update_app(updateInfo)();
+    } catch (error) {
+      console.error("Error initiating app update:", error);
+    }
+  },
 };
 
 export function formatDateTime(dateString, returnOnlyDate = false) {
@@ -36,7 +50,9 @@ export function formatDateTime(dateString, returnOnlyDate = false) {
 
   try {
     const date = new Date(
-      dateString.includes(" ") ? dateString.replace(" ", "T") + "Z" : dateString
+      dateString.includes(" ")
+        ? dateString.replace(" ", "T") + "Z"
+        : dateString,
     );
 
     if (isNaN(date.getTime())) return "—";
@@ -96,8 +112,8 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
       const gameNameLower = game.title
         ? game.title.toLowerCase()
         : game.name
-        ? game.name.toLowerCase()
-        : "";
+          ? game.name.toLowerCase()
+          : "";
 
       if (gameNameLower === searchTerm) {
         return true;
@@ -112,7 +128,7 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
 
       if (searchWords.length > 0) {
         const allSearchWordsFound = searchWords.every((searchWord) =>
-          gameWords.some((gameWord) => gameWord === searchWord)
+          gameWords.some((gameWord) => gameWord === searchWord),
         );
 
         if (allSearchWordsFound) {
@@ -127,7 +143,7 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
 
         if (searchWords.length > 0) {
           const allWordsPartiallyFound = searchWords.every((searchWord) =>
-            gameNameLower.includes(searchWord)
+            gameNameLower.includes(searchWord),
           );
 
           return allWordsPartiallyFound;
@@ -140,13 +156,13 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
       const aName = a.title
         ? a.title.toLowerCase()
         : a.name
-        ? a.name.toLowerCase()
-        : "";
+          ? a.name.toLowerCase()
+          : "";
       const bName = b.title
         ? b.title.toLowerCase()
         : b.name
-        ? b.name.toLowerCase()
-        : "";
+          ? b.name.toLowerCase()
+          : "";
 
       if (aName === searchTerm) return -1;
       if (bName === searchTerm) return 1;

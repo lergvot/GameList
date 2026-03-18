@@ -108,6 +108,11 @@ class Localisation {
         this.applyTranslations();
         this.renderLanguageSelector();
 
+        // Обновляем тултип версии
+        if (window.app && window.app.updateVersionTooltip) {
+          window.app.updateVersionTooltip();
+        }
+
         if (window.app && window.app.loadAndRender) {
           await window.app.loadAndRender();
         }
@@ -192,7 +197,7 @@ class Localisation {
 
     // 9. Обновляем плейсхолдер загрузки изображения, если он есть
     const uploadPlaceholder = document.querySelector(
-      '.upload-area__placeholder[data-i18n="upload_image_placeholder"]'
+      '.upload-area__placeholder[data-i18n="upload_image_placeholder"]',
     );
     if (uploadPlaceholder) {
       const text = this.t("upload_image_placeholder");

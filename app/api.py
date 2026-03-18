@@ -9,6 +9,7 @@ import eel
 from app.database import GameRepository
 from app.image_utils import delete_screenshot, save_screenshot
 from app.logger import get_logger
+from app.updater import perform_update, check_for_updates
 from config import APP_VERSION
 
 logger = get_logger(__name__)
@@ -182,3 +183,15 @@ def get_statistics():
             "planned": 0,
             "dropped": 0,
         }
+
+
+@eel.expose
+def check_updates():
+    """Проверяет наличие обновлений"""
+    return check_for_updates()
+
+
+@eel.expose
+def update_app(update_info):
+    """Обновляет приложение"""
+    perform_update(update_info)

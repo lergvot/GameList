@@ -1,8 +1,8 @@
 // web/app.js
-import { api } from "./api.js";
-import ui from "./ui.js";
-import { ThemeManager } from "./theme.js";
+import { api, formatDateTime } from "./api.js";
 import locale, { t } from "./localisation.js";
+import { ThemeManager } from "./theme.js";
+import ui from "./ui.js";
 
 const state = {
   allGames: [],
@@ -15,6 +15,8 @@ const state = {
   duplicatePopupTimeout: null,
   currentSort: "added-asc",
   currentLang: "ru",
+  updateInfo: null,
+  versionElement: null,
 };
 
 window.app = {
@@ -35,6 +37,9 @@ window.app = {
     await loadAndRender(state);
   },
   getCurrentLanguage: () => locale.getCurrentLang(),
+  checkForUpdates,
+  initiateAppUpdate,
+  updateVersionTooltip,
   _state: state,
 };
 
@@ -89,18 +94,6 @@ function filterAndDisplay(state) {
   ui.filterAndDisplay(state);
 }
 
-async function updateAppVersion() {
-  try {
-    const version = await api.getAppVersion();
-    const versionElement = document.getElementById("app-version");
-    if (versionElement) {
-      versionElement.textContent = `v${version}`;
-    }
-  } catch (error) {
-    console.log("Failed to get app version:", error);
-  }
-}
-
 function initializeThemeManager() {
   try {
     const themeManager = new ThemeManager();
@@ -113,4 +106,106 @@ function initializeThemeManager() {
   }
 }
 
-export { state, loadAndRender, filterAndDisplay };
+async function updateAppVersion() {
+  try {
+    const version = await api.getAppVersion();
+    const versionElement = document.getElementById("app-version");
+    if (versionElement) {
+      versionElement.textContent = version;
+      state.versionElement = versionElement;
+      // Проверяем обновления после установки версии
+      await checkForUpdates(versionElement);
+    }
+  } catch (error) {
+    console.log("Failed to get app version:", error);
+  }
+}
+
+async function checkForUpdates(versionElement = null) {
+  try {
+    const updateInfo = await api.checkUpdates();
+    state.updateInfo = updateInfo;
+
+    if (versionElement) {
+      // Сбрасываем классы
+      versionElement.classList.remove(
+        "app-header__version--current",
+        "app-header__version--update",
+      );
+
+      // Убираем обработчик клика если был
+      versionElement.onclick = null;
+
+      const releaseDate = updateInfo.created_at
+        ? formatDateTime(updateInfo.created_at, true)
+        : "—";
+
+      if (updateInfo.has_update) {
+        // Есть обновление - жёлтый цвет, клик открывает модалку
+        versionElement.classList.add("app-header__version--update");
+        versionElement.onclick = () => ui.showUpdateModal(updateInfo);
+
+        // Добавляем тултип с информацией (используем локализацию)
+        const tooltipText = locale.t("version_tooltip_update", {
+          version: updateInfo.latest_version,
+          date: releaseDate,
+        });
+        versionElement.setAttribute("data-tooltip", tooltipText);
+        ui.showToast(tooltipText);
+      } else {
+        // Актуальная версия - зелёный цвет
+        versionElement.classList.add("app-header__version--current");
+
+        // Добавляем тултип с информацией (используем локализацию)
+        const tooltipText = locale.t("version_tooltip_current", {
+          version: updateInfo.current_version,
+          date: releaseDate,
+        });
+        versionElement.setAttribute("data-tooltip", tooltipText);
+        ui.showToast(tooltipText);
+      }
+    } else if (updateInfo.has_update) {
+      // Если versionElement не передан, просто показываем уведомление
+      ui.showUpdateNotification(updateInfo);
+    }
+  } catch (error) {
+    console.log("Failed to get check updates:", error);
+  }
+}
+
+async function initiateAppUpdate() {
+  try {
+    if (state.updateInfo) {
+      await api.updateApp(state.updateInfo);
+      ui.closeUpdateModal();
+    }
+  } catch (error) {
+    console.error("Error initiating app update:", error);
+  }
+}
+
+export function updateVersionTooltip() {
+  if (!state.versionElement || !state.updateInfo) return;
+
+  const versionElement = state.versionElement;
+  const updateInfo = state.updateInfo;
+  const releaseDate = updateInfo.created_at
+    ? formatDateTime(updateInfo.created_at, true)
+    : "—";
+
+  if (updateInfo.has_update) {
+    const tooltipText = locale.t("version_tooltip_update", {
+      version: updateInfo.latest_version,
+      date: releaseDate,
+    });
+    versionElement.setAttribute("data-tooltip", tooltipText);
+  } else {
+    const tooltipText = locale.t("version_tooltip_current", {
+      version: updateInfo.current_version,
+      date: releaseDate,
+    });
+    versionElement.setAttribute("data-tooltip", tooltipText);
+  }
+}
+
+export { filterAndDisplay, loadAndRender, state };

@@ -88,4 +88,16 @@ export default {
   status_unknown_display: "UNKNOWN",
 
   no_title: "No title",
+
+  version_label: "Version ",
+
+  // Update functionality
+  update_available_title: "Update Available",
+  current_version_label: "Current version:",
+  latest_version_label: "New version:",
+  release_date_label: "Release date:",
+  release_notes_label: "Release notes:",
+  app_up_to_date: "App is up to date",
+  version_tooltip_current: "No app update required",
+  version_tooltip_update: "Version {version} available from {date}",
 };

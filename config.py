@@ -5,7 +5,7 @@
 from pathlib import Path
 
 # Версия приложения
-APP_VERSION = "1.13.0"
+APP_VERSION = "1.15.0"
 
 # Название приложения
 APP_NAME = "GameList"
@@ -41,3 +41,6 @@ IMAGE_QUALITY = 85
 # Настройки проверки порта
 PORT_START = 8000
 PORT_RANGE = 25  # количество портов для проверки
+
+# Настройки репозитория
+GITHUB_API_URL = "https://api.github.com/repos/lergvot/GameList/releases/latest"

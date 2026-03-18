@@ -88,4 +88,16 @@ export default {
   status_unknown_display: "НЕИЗВЕСТНО",
 
   no_title: "Без названия",
+
+  version_label: "Версия ",
+
+  // Update functionality
+  update_available_title: "Доступно обновление",
+  current_version_label: "Текущая версия:",
+  latest_version_label: "Новая версия:",
+  release_date_label: "Дата релиза:",
+  release_notes_label: "Описание изменений:",
+  app_up_to_date: "Установлена актуальная версия",
+  version_tooltip_current: "Обновление приложения не требуется",
+  version_tooltip_update: "Доступна версия {version} от {date}",
 };
