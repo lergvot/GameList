@@ -8,7 +8,7 @@ import eel
 from app.api import *
 from app.database import init_db
 from app.image_utils import ensure_dirs
-from app.logger import get_logger, LOG_SEPARATOR
+from app.logger import get_logger
 from config import (
     APP_NAME,
     APP_VERSION,
@@ -16,6 +16,7 @@ from config import (
     PORT_START,
     WINDOW_POSITION,
     WINDOW_SIZE,
+    LOG_SEPARATOR,
 )
 
 logger = get_logger(__name__)

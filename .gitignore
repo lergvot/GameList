@@ -1,10 +1,15 @@
+__pycache__
+
 /data
 /dist
 /build
 /tests
 /GameList
 /venv
-__pycache__
+
+app.log
+app.log.1
+
 GameList.spec
 future.txt
 TODO.md
