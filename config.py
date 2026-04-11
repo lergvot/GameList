@@ -46,5 +46,4 @@ PORT_RANGE = 25  # количество портов для проверки
 GITHUB_API_URL = "https://api.github.com/repos/lergvot/GameList/releases/latest"
 
 # Настройки логирования
-LOG_MAX_BYTES = 1 * 1024 * 1024  # 1 МБ на файл логов
 LOG_SEPARATOR = "─" * 60 # Разделителя для логов
