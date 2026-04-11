@@ -5,7 +5,7 @@
 from pathlib import Path
 
 # Конфигурация приложения GameList
-APP_VERSION = "1.15.2"
+APP_VERSION = "1.16.0"
 APP_NAME = "GameList"
 WINDOW_SIZE = (1280, 720) # Размер окна приложения (ширина, высота)
 WINDOW_POSITION = (100, 100) # Позиция окна при запуске (x, y)
