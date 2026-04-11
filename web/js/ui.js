@@ -595,7 +595,7 @@ export function setupEventHandlers(state) {
 
   // Обработчики для модального окна обновления
   document
-    .getElementById("update-cancel")
+    .getElementById("update-close")
     .addEventListener("click", () => closeUpdateModal());
   document
     .getElementById("update-confirm")
@@ -818,7 +818,10 @@ export function showUpdateModal(updateInfo) {
   const releaseDate = updateInfo.created_at
     ? formatDateTime(updateInfo.created_at, true)
     : "—";
-  document.getElementById("update-release-date").textContent = releaseDate;
+  const dateInline = document.getElementById("update-release-date-inline");
+  if (dateInline) {
+    dateInline.textContent = `(${releaseDate})`;
+  }
 
   // Очищаем markdown из release notes
   const cleanMarkdown = (text) => {

@@ -993,6 +993,16 @@ body.theme-light #theme-toggle {
   padding: var(--space-xl);
 }
 
+.modal__panel--update {
+  width: 480px;
+  padding: var(--space-lg) var(--space-xl);
+}
+
+.modal__panel--update .modal__title {
+  text-align: center;
+  margin-bottom: var(--space-sm);
+}
+
 .modal__close {
   position: absolute;
   right: var(--space-xs);
@@ -1141,12 +1151,19 @@ body.theme-light #theme-toggle {
 }
 
 .form__actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--space-md);
-  width: 100%;
-  margin-top: auto;
+    display: flex;
+    gap: var(--space-md);
+    width: 100%;
+    margin-top: auto;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.update-info__hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 /* ==========================================================================
@@ -1705,35 +1722,45 @@ body.modal-open {
    ========================================================================== */
 
 .update-info {
-  text-align: left;
   margin-bottom: var(--space-lg);
 }
 
-.update-info__version {
+.update-info__versions {
   display: flex;
-  justify-content: space-between;
-  padding: var(--space-xs) 0;
-  font-size: 0.9rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.update-info__version:last-of-type {
-  margin-bottom: var(--space-sm);
-}
-
-.update-info__date {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--space-xs) 0;
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border-light);
-  padding-bottom: var(--space-md);
+  flex-direction: column;
+  gap: var(--space-xs);
   margin-bottom: var(--space-md);
 }
 
+.update-info__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-hover);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  flex-direction: column;
+}
+
+.update-info__row--new {
+  background: var(--color-version-current-bg);
+  color: var(--color-version-current);
+}
+
+.update-info__row--new span {
+  color: inherit;
+}
+
+.update-info__date-inline {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 .update-info__notes {
-  margin-top: var(--space-md);
+  margin-top: 0;
+  margin-bottom: var(--space-md);
 }
 
 .update-info__notes p {
@@ -1752,6 +1779,7 @@ body.modal-open {
   overflow-y: auto;
   white-space: pre-wrap;
   word-wrap: break-word;
+  margin-bottom: var(--space-md);
 }
 
 /* ==========================================================================

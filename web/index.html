@@ -418,22 +418,33 @@
 
     <!-- Модальное окно обновления -->
     <div id="update-modal" class="modal" aria-hidden="true">
-      <div class="modal__panel modal__panel--small">
+      <div class="modal__panel modal__panel--update">
+        <button
+          class="modal__close"
+          id="update-close"
+          data-tooltip="Закрыть"
+          data-i18n-title="close_tooltip"
+        >
+          ✕
+        </button>
+
         <h3 class="modal__title" data-i18n="update_available_title">
           Доступно обновление
         </h3>
+
         <div class="update-info">
-          <div class="update-info__version">
-            <span data-i18n="current_version_label">Текущая версия:</span>
-            <span id="update-current-version">0.0.0</span>
-          </div>
-          <div class="update-info__version">
-            <span data-i18n="latest_version_label">Новая версия:</span>
-            <span id="update-latest-version">0.0.0</span>
-          </div>
-          <div class="update-info__date">
-            <span data-i18n="release_date_label">Дата релиза:</span>
-            <span id="update-release-date">—</span>
+          <div class="update-info__versions">
+            <div class="update-info__row update-info__row--new">
+              <span data-i18n="latest_version_label">Новая версия:</span>
+              <span>
+                <span id="update-latest-version">0.0.0</span>
+                <span class="update-info__date-inline" id="update-release-date-inline"></span>
+              </span>
+            </div>
+            <div class="update-info__row">
+              <span data-i18n="current_version_label">Текущая версия:</span>
+              <span id="update-current-version">0.0.0</span>
+            </div>
           </div>
           <div class="update-info__notes">
             <p data-i18n="release_notes_label">Описание изменений:</p>
@@ -443,10 +454,8 @@
             ></div>
           </div>
         </div>
-        <div class="modal__actions">
-          <button id="update-cancel" class="btn" data-i18n="cancel_button">
-            Отмена
-          </button>
+
+        <div class="form__actions">
           <button
             id="update-confirm"
             class="btn btn--primary"
@@ -454,6 +463,9 @@
           >
             Обновить
           </button>
+          <span class="update-info__hint" data-i18n="update_hint"
+            >Будет открыт браузер для скачивания</span
+          >
         </div>
       </div>
     </div>

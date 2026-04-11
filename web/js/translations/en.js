@@ -100,4 +100,5 @@ export default {
   app_up_to_date: "App is up to date",
   version_tooltip_current: "No app update required",
   version_tooltip_update: "Version {version} available from {date}",
+  update_hint: "Browser will open to download",
 };
