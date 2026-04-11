@@ -4,26 +4,17 @@
 """
 from pathlib import Path
 
-# Версия приложения
+# Конфигурация приложения GameList
 APP_VERSION = "1.15.2"
-
-# Название приложения
 APP_NAME = "GameList"
-
-# Размер окна приложения (ширина, высота)
-WINDOW_SIZE = (1280, 720)
-
-# Позиция окна при запуске (x, y)
-WINDOW_POSITION = (100, 100)
+WINDOW_SIZE = (1280, 720) # Размер окна приложения (ширина, высота)
+WINDOW_POSITION = (100, 100) # Позиция окна при запуске (x, y)
 
 # Настройки для сборки
 BUILD_CONFIG = {
-    # Имя для EXE файла
-    "exe_name": "GameList",
-    # Путь к иконке (относительно корня проекта)
-    "icon_path": "web/favicon.ico",
-    # Для release сборки - префикс архивов
-    "release_prefix": "GameList",
+    "exe_name": "GameList", # Имя для EXE файла
+    "icon_path": "web/favicon.ico", # Путь к иконке (относительно корня проекта)
+    "release_prefix": "GameList", # Для release сборки - префикс архивов
 }
 
 # Пути к данным
@@ -32,10 +23,10 @@ DB_FILE = DATA_DIR / "app.db"
 SCREENSHOTS_DIR = DATA_DIR / "screenshots"
 
 # Настройки базы данных
-DB_TIMEOUT = 10  # таймаут подключения к БД (секунды)
+DB_TIMEOUT = 5  # таймаут подключения к БД (секунды)
 
 # Настройки оптимизации изображений
-IMAGE_MAX_WIDTH = 1366
+IMAGE_MAX_WIDTH = 1920
 IMAGE_QUALITY = 85
 
 # Настройки проверки порта
