@@ -4,6 +4,7 @@ import sqlite3
 from typing import Optional
 
 from app.logger import get_logger
+from app.migrations import run_migrations
 from config import DB_FILE, DB_TIMEOUT
 
 logger = get_logger(__name__)
@@ -151,34 +152,14 @@ class GameRepository:
 
 
 def init_db():
-    """Инициализирует базу данных"""
+    """Инициализирует базу данных через систему миграций."""
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS games (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                version TEXT DEFAULT '',
-                status TEXT DEFAULT 'planned',
-                rating REAL DEFAULT 0,
-                review TEXT DEFAULT '',
-                game_link TEXT DEFAULT '',
-                screenshot_path TEXT DEFAULT '',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """
-        )
-
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
-
-        conn.commit()
-        conn.close()
-        logger.info("Database initialized successfully")
+        try:
+            run_migrations(conn)
+            logger.info("Database initialized successfully")
+        finally:
+            conn.close()
     except sqlite3.Error as e:
         logger.critical(f"Failed to initialize database: {e}", exc_info=True)
         raise RuntimeError(f"Database initialization failed: {e}")

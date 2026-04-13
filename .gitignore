@@ -8,7 +8,6 @@ __pycache__
 /venv
 
 app.log
-app.log.1
 
 GameList.spec
 future.txt
