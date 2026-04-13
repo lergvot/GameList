@@ -1,5 +1,6 @@
 # app/database.py
 
+import re
 import sqlite3
 from typing import Optional
 
@@ -8,6 +9,13 @@ from app.migrations import run_migrations
 from config import DB_FILE, DB_TIMEOUT
 
 logger = get_logger(__name__)
+
+
+def sanitize_text(text: str) -> str:
+    """Убирает < и > из текста — простая защита от XSS"""
+    if not text:
+        return ""
+    return re.sub(r"[<>]", "", str(text))
 
 
 class GameRepository:
@@ -47,11 +55,11 @@ class GameRepository:
                     VALUES (?, ?, ?, ?, ?, ?)
                 """,
                     (
-                        game_data.get("title", ""),
-                        game_data.get("version", ""),
+                        sanitize_text(game_data.get("title", "")),
+                        sanitize_text(game_data.get("version", "")),
                         game_data.get("status", "planned"),
                         float(game_data.get("rating", 0)),
-                        game_data.get("review", ""),
+                        sanitize_text(game_data.get("review", "")),
                         game_data.get("game_link", ""),
                     ),
                 )
@@ -80,11 +88,11 @@ class GameRepository:
                     WHERE id = ?
                 """,
                     (
-                        game_data.get("title", ""),
-                        game_data.get("version", ""),
+                        sanitize_text(game_data.get("title", "")),
+                        sanitize_text(game_data.get("version", "")),
                         game_data.get("status", "planned"),
                         float(game_data.get("rating", 0)),
-                        game_data.get("review", ""),
+                        sanitize_text(game_data.get("review", "")),
                         game_data.get("game_link", ""),
                         screenshot_path,
                         game_id,

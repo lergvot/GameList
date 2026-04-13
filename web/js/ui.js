@@ -2,6 +2,7 @@
 import {
   api,
   escapeHtml,
+  sanitizeInput,
   formatDateTime,
   statusClassFor,
   findSimilarGames,
@@ -56,11 +57,10 @@ function renderGameCards(games, helpers) {
         statusText: t(`status_${game.status}_display`),
       };
 
-      const gameJson = JSON.stringify(game).replace(/"/g, "&quot;");
+      const gameJson = JSON.stringify(game);
 
       return `
-      <article class="game-card" data-id="${escapedGame.id}" 
-               onclick="app.showView(${gameJson})">
+      <article class="game-card" data-id="${escapedGame.id}" data-game-card>
         <div class="game-card__left">
           <div class="game-card__rating">
             ${
@@ -85,11 +85,8 @@ function renderGameCards(games, helpers) {
             <h3 class="game-card__title" data-tooltip="${escapedGame.title}">
               ${escapedGame.title || "—"}
             </h3>
-            <button class="game-card__copy" 
-                    onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.title.replace(
-                      /'/g,
-                      "\\'",
-                    )}')"
+            <button class="game-card__copy"
+                    data-copy-title="${escapedGame.title}"
                     data-tooltip="${t("copy_title_tooltip")}">
               ⧉
             </button>
@@ -131,11 +128,8 @@ function renderGameCards(games, helpers) {
               ${
                 escapedGame.gameLink
                   ? `
-                    <button class="btn btn--icon" 
-                      onclick="event.stopPropagation(); app.copyToClipboard('${escapedGame.gameLink.replace(
-                        /'/g,
-                        "\\'",
-                      )}')"
+                    <button class="btn btn--icon"
+                      data-copy-link="${escapedGame.gameLink}"
                       data-i18n-title="${t("copy_link_tooltip")}"
                       data-tooltip="${t("copy_link_tooltip")}">
                       🡵
@@ -143,16 +137,14 @@ function renderGameCards(games, helpers) {
                   `
                   : ""
               }
-              <button class="btn btn--icon" 
-                onclick="event.stopPropagation(); app.openForm(${gameJson})"
+              <button class="btn btn--icon"
+                data-edit-id="${game.id}"
                 data-i18n-title="${t("edit_tooltip")}"
                 data-tooltip="${t("edit_tooltip")}">
                 ✎
               </button>
-              <button class="btn btn--icon btn--danger" 
-                onclick="event.stopPropagation(); app.openConfirmModal(${
-                  game.id
-                })"
+              <button class="btn btn--icon btn--danger"
+                data-delete-id="${game.id}"
                 data-i18n-title="${t("delete_tooltip")}"
                 data-tooltip="${t("delete_tooltip")}">
                 🗑
@@ -355,9 +347,7 @@ export function showView(game) {
   document.getElementById("view-review").textContent = game.review || "—";
 
   document.getElementById("view-image").innerHTML = game.screenshot_data
-    ? `<img src="${game.screenshot_data}" alt="${
-        game.title || "screenshot"
-      }" loading="lazy">`
+    ? `<img src="${game.screenshot_data}" alt="" loading="lazy">`
     : `<div class="view__image-placeholder">${t("no_image")}</div>`;
 
   const createdEl = document.getElementById("view-created-at");
@@ -509,13 +499,16 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
     const statusClass = `status-badge--${game.status}`;
     const statusText = getStatusText(game.status).toUpperCase();
 
-    listItem.innerHTML = `
-      <span class="duplicate-popup__name">${
-        game.title || game.name || t("no_title")
-      }</span>
-      <span class="status-badge ${statusClass}">${statusText}</span>
-    `;
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "duplicate-popup__name";
+    nameSpan.textContent = game.title || game.name || t("no_title");
 
+    const statusSpan = document.createElement("span");
+    statusSpan.className = `status-badge ${statusClass}`;
+    statusSpan.textContent = statusText;
+
+    listItem.appendChild(nameSpan);
+    listItem.appendChild(statusSpan);
     list.appendChild(listItem);
   });
 
@@ -566,6 +559,49 @@ export function setupEventHandlers(state) {
   document
     .getElementById("add-game-btn")
     .addEventListener("click", () => openForm(state));
+
+  // Делегирование: все клики по карточкам
+  gamesListEl.addEventListener("click", (e) => {
+    const copyBtn = e.target.closest(".game-card__copy");
+    if (copyBtn) {
+      e.preventDefault();
+      const titleToCopy = copyBtn.getAttribute("data-copy-title");
+      if (titleToCopy) copyToClipboard(titleToCopy);
+      return;
+    }
+
+    const linkBtn = e.target.closest("[data-copy-link]");
+    if (linkBtn) {
+      e.preventDefault();
+      const linkToCopy = linkBtn.getAttribute("data-copy-link");
+      if (linkToCopy) copyToClipboard(linkToCopy);
+      return;
+    }
+
+    const editBtn = e.target.closest("[data-edit-id]");
+    if (editBtn) {
+      e.preventDefault();
+      const gameId = parseInt(editBtn.getAttribute("data-edit-id"));
+      const game = state.allGames.find((g) => g.id === gameId);
+      if (game) openForm(state, game);
+      return;
+    }
+
+    const deleteBtn = e.target.closest("[data-delete-id]");
+    if (deleteBtn) {
+      e.preventDefault();
+      const gameId = parseInt(deleteBtn.getAttribute("data-delete-id"));
+      openConfirmModal(state, gameId);
+      return;
+    }
+
+    const card = e.target.closest("[data-game-card]");
+    if (card) {
+      const gameId = parseInt(card.getAttribute("data-id"));
+      const game = state.allGames.find((g) => g.id === gameId);
+      if (game) showView(game);
+    }
+  });
 
   document
     .getElementById("modal-close")
@@ -708,11 +744,11 @@ async function onSubmit(e, state) {
   }
 
   const payload = {
-    title: document.getElementById("title").value.trim(),
-    version: document.getElementById("version").value.trim(),
+    title: sanitizeInput(document.getElementById("title").value.trim()),
+    version: sanitizeInput(document.getElementById("version").value.trim()),
     status: document.getElementById("status").value,
     rating: parseFloat(document.getElementById("rating").value) || 0,
-    review: document.getElementById("review").value.trim(),
+    review: sanitizeInput(document.getElementById("review").value.trim()),
     game_link: document.getElementById("game-link").value.trim(),
   };
 

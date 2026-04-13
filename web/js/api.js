@@ -96,6 +96,11 @@ export function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+export function sanitizeInput(str) {
+  if (!str) return "";
+  return String(str).replace(/[<>]/g, "");
+}
+
 export function findSimilarGames(gameName, allGames, currentGameId = null) {
   const searchTerm = gameName.toLowerCase().trim();
 
