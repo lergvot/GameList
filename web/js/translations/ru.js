@@ -101,4 +101,7 @@ export default {
   version_tooltip_current: "Обновление приложения не требуется",
   version_tooltip_update: "Доступна версия {version} от {date}",
   update_hint: "Будет открыт браузер для скачивания",
+
+  // Image validation
+  invalid_image_format: "Неподдерживаемый формат изображения. Допускаются: JPEG, PNG, WebP, GIF",
 };

@@ -13,6 +13,10 @@ from config import DATA_DIR, IMAGE_MAX_WIDTH, IMAGE_QUALITY, SCREENSHOTS_DIR
 
 logger = get_logger(__name__)
 
+# Допустимые форматы изображений
+ALLOWED_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+ALLOWED_IMAGE_MIME_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+
 
 def normalize_filename(name):
     """Нормализует имя файла для безопасности"""
@@ -22,30 +26,65 @@ def normalize_filename(name):
     return re.sub(r"_+", "_", name.replace(" ", "_"))[:100].strip("_")
 
 
-def optimize_screenshot(image_data, max_width=IMAGE_MAX_WIDTH, quality=IMAGE_QUALITY):
-    """Оптимизирует изображение в WebP, пропускает SVG"""
+def validate_image_format(image_data):
+    """
+    Проверяет формат изображения.
+    Возвращает True если формат допустим, иначе False.
+    """
     try:
+        if "," in image_data:
+            # Извлекаем MIME тип из data URL
+            header = image_data.split(",", 1)[0]
+            # header format: "data:image/png;base64"
+            if "image/" in header:
+                mime_match = re.search(r"data:image/([^;]+)", header)
+                if mime_match:
+                    mime_type = f"image/{mime_match.group(1)}"
+                    if mime_type not in ALLOWED_IMAGE_MIME_TYPES:
+                        logger.warning(f"Unsupported MIME type: {mime_type}")
+                        return False
+        
+        # Декодируем и проверяем байты
+        data_part = image_data.split(",", 1)[1] if "," in image_data else image_data
+        image_bytes = base64.b64decode(data_part)
+        
+        # Проверяю по сигнатуре файла
+        # JPEG: FF D8 FF
+        # PNG: 89 50 4E 47
+        # GIF: 47 49 46 38
+        # WebP: RIFF....WEBP
+        
+        if image_bytes[:3] == b'\xff\xd8\xff':
+            return True  # JPEG
+        elif image_bytes[:4] == b'\x89PNG':
+            return True  # PNG
+        elif image_bytes[:4] == b'GIF8':
+            return True  # GIF
+        elif image_bytes[:4] == b'RIFF' and image_bytes[8:12] == b'WEBP':
+            return True  # WebP
+        else:
+            logger.warning("Unknown image signature")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error validating image format: {e}")
+        return False
+
+
+def optimize_screenshot(image_data, max_width=IMAGE_MAX_WIDTH, quality=IMAGE_QUALITY):
+    """Оптимизирует изображение в WebP"""
+    try:
+        # Проверяем формат перед обработкой
+        if not validate_image_format(image_data):
+            logger.error("Invalid image format - unsupported file type")
+            return None
+
         if "," in image_data:
             image_data = image_data.split(",", 1)[1]
 
         image_bytes = base64.b64decode(image_data)
 
-        # Проверяем, является ли изображение SVG (по первым байтам)
-        if image_bytes.startswith(b"<?xml") or b"<svg" in image_bytes[:100]:
-            logger.info("SVG image detected, skipping optimization")
-            return image_data  # Возвращаем оригинал для SVG
-
         image = Image.open(io.BytesIO(image_bytes))
-
-        # Конвертация в RGB если нужно
-        if image.mode in ("RGBA", "LA", "P"):
-            background = Image.new("RGB", image.size, (255, 255, 255))
-            if image.mode == "P":
-                image = image.convert("RGBA")
-            background.paste(
-                image, mask=image.split()[-1] if image.mode == "RGBA" else None
-            )
-            image = background
 
         # Ресайз если нужно
         original_size = (image.width, image.height)
@@ -85,16 +124,17 @@ def save_screenshot(image_data, game_id, game_title):
 
     try:
         optimized_data = optimize_screenshot(image_data)
+        if optimized_data is None:
+            logger.error(f"Failed to optimize screenshot for game {game_id}: invalid format")
+            return ""
+        
         if "," in optimized_data:
             optimized_data = optimized_data.split(",", 1)[1]
 
         image_bytes = base64.b64decode(optimized_data)
 
-        # Определяем расширение файла
+        # Все скриншоты сохраняем как WebP
         file_extension = ".webp"
-        if image_bytes.startswith(b"<?xml") or b"<svg" in image_bytes[:100]:
-            file_extension = ".svg"
-
         filename = f"{game_id}_{normalize_filename(game_title)}{file_extension}"
         filepath = SCREENSHOTS_DIR / filename
 

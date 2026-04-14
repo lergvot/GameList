@@ -2,7 +2,6 @@
 
 import base64
 import os
-from pathlib import Path
 
 import eel
 
@@ -35,17 +34,10 @@ def load_games():
             if screenshot_path and os.path.exists(screenshot_path):
                 try:
                     with open(screenshot_path, "rb") as f:
-                        file_extension = Path(screenshot_path).suffix.lower()
                         image_data = base64.b64encode(f.read()).decode("utf-8")
-
-                        if file_extension == ".svg":
-                            game["screenshot_data"] = (
-                                f"data:image/svg+xml;base64,{image_data}"
-                            )
-                        else:
-                            game["screenshot_data"] = (
-                                f"data:image/webp;base64,{image_data}"
-                            )
+                        game["screenshot_data"] = (
+                            f"data:image/webp;base64,{image_data}"
+                        )
                 except Exception as e:
                     logger.warning(f"Error loading screenshot {screenshot_path}: {e}")
                     game["screenshot_data"] = ""

@@ -101,4 +101,7 @@ export default {
   version_tooltip_current: "No app update required",
   version_tooltip_update: "Version {version} available from {date}",
   update_hint: "Browser will open to download",
+
+  // Image validation
+  invalid_image_format: "Unsupported image format. Allowed: JPEG, PNG, WebP, GIF",
 };

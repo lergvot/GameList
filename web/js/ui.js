@@ -791,7 +791,32 @@ async function onSubmit(e, state) {
 
 function onScreenshotSelected(e, state) {
   const file = e.target.files[0];
-  if (!file || !file.type.startsWith("image/")) return;
+  if (!file) return;
+
+  // Проверяем допустимые форматы изображений
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+  
+  const fileName = file.name.toLowerCase();
+  const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+  const hasValidMimeType = allowedTypes.includes(file.type);
+
+  if (!hasValidMimeType || !hasValidExtension) {
+    // Показываем ошибку пользователю
+    showToast(t("invalid_image_format"));
+    
+    // Логируем в файл через бэкенд
+    const logMessage = `Invalid image format: ${file.name} (type: ${file.type})`;
+    console.warn(logMessage);
+    if (window.eel && window.eel.log_frontend) {
+      window.eel.log_frontend("warning", logMessage);
+    }
+    
+    // Сбрасываем input
+    e.target.value = "";
+    
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = (ev) => {
