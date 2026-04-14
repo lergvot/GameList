@@ -1,14 +1,13 @@
 __pycache__
+.qwen
 
-/data
-/dist
 /build
-/tests
+/data
 /GameList
+/tests
 /venv
 
 app.log
-
 GameList.spec
-future.txt
+features.txt
 TODO.md

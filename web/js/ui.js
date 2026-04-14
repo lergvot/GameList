@@ -447,9 +447,9 @@ export function showToast(message) {
   toast.className = "toast";
   document.body.appendChild(toast);
 
-  setTimeout(() => toast.classList.add("toast--visible"), 10);
+  setTimeout(() => toast.classList.add("toast--visible"), 100);
   setTimeout(() => toast.classList.remove("toast--visible"), 2000);
-  setTimeout(() => toast.remove(), 2300);
+  setTimeout(() => toast.remove(), 2500);
 }
 
 export function updateStats(stats) {
