@@ -1,5 +1,5 @@
 // web/app.js
-import { api, formatDateTime } from "./api.js";
+import { api, formatDateTime, logToBackend } from "./api.js";
 import locale, { t } from "./localisation.js";
 import { ThemeManager } from "./theme.js";
 import ui from "./ui.js";
@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateAppVersion();
   } catch (error) {
     console.error("Error initializing application:", error);
+    logToBackend("error", `App init error: ${error.message || error}`);
     alert(t("load_error"));
   }
 });
@@ -84,6 +85,7 @@ async function loadAndRender(state) {
     filterAndDisplay(state);
   } catch (error) {
     console.error("Error loading data:", error);
+    logToBackend("error", `Data load error: ${error.message || error}`);
     ui.showToast(t("load_error"));
   } finally {
     setTimeout(() => hideAppOverlay(), 300);
@@ -101,6 +103,7 @@ function initializeThemeManager() {
     window.app.themeManager = themeManager;
   } catch (error) {
     console.error("Error initializing ThemeManager:", error);
+    logToBackend("error", `ThemeManager init error: ${error.message || error}`);
     document.body.classList.remove("theme-light");
     localStorage.setItem("app-theme", "dark");
   }
@@ -181,6 +184,7 @@ async function initiateAppUpdate() {
     }
   } catch (error) {
     console.error("Error initiating app update:", error);
+    logToBackend("error", `App update initiation error: ${error.message || error}`);
   }
 }
 

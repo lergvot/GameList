@@ -15,6 +15,19 @@ logger = get_logger(__name__)
 
 
 @eel.expose
+def log_frontend(level, message):
+    """Логирует сообщения с фронтенда"""
+    if level == "warning":
+        logger.warning(f"[Frontend] {message}")
+    elif level == "error":
+        logger.error(f"[Frontend] {message}")
+    elif level == "info":
+        logger.info(f"[Frontend] {message}")
+    else:
+        logger.debug(f"[Frontend] {message}")
+
+
+@eel.expose
 def get_version():
     return APP_VERSION
 

@@ -1,4 +1,6 @@
 // web/js/localisation.js
+import { logToBackend } from "./api.js";
+
 class Localisation {
   constructor() {
     this.currentLang = "ru";
@@ -58,6 +60,7 @@ class Localisation {
       console.log(`Loaded ${lang} language`);
     } catch (error) {
       console.error(`Failed to load ${lang} language:`, error);
+      logToBackend("error", `Failed to load ${lang} language: ${error.message || error}`);
       if (lang !== "ru") {
         await this.loadLanguage("ru");
       }

@@ -41,9 +41,25 @@ export const api = {
       await eel.update_app(updateInfo)();
     } catch (error) {
       console.error("Error initiating app update:", error);
+      logToBackend("error", `App update error: ${error.message || error}`);
     }
   },
 };
+
+/**
+ * Логирует сообщение на бэкенд (если Eel доступен)
+ * @param {string} level - уровень: "error", "warning", "info"
+ * @param {string} message - сообщение
+ */
+export function logToBackend(level, message) {
+  try {
+    if (window.eel && window.eel.log_frontend) {
+      window.eel.log_frontend(level, message);
+    }
+  } catch (e) {
+    // Игнорируем ошибки логирования чтобы не засорять консоль
+  }
+}
 
 export function formatDateTime(dateString, returnOnlyDate = false) {
   if (!dateString) return "—";
@@ -72,6 +88,7 @@ export function formatDateTime(dateString, returnOnlyDate = false) {
     return `${hours}:${minutes}:${seconds} ${day}.${month}.${year}`;
   } catch (error) {
     console.error("Ошибка форматирования даты:", error, dateString);
+    logToBackend("error", `Date format error: ${error.message || error} for date: ${dateString}`);
     return "—";
   }
 }

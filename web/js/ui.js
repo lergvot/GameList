@@ -7,6 +7,7 @@ import {
   statusClassFor,
   findSimilarGames,
   getStatusText,
+  logToBackend,
 } from "./api.js";
 import { t } from "./localisation.js";
 
@@ -427,6 +428,7 @@ export async function onConfirmDelete(state) {
     }
   } catch (e) {
     console.error(e);
+    logToBackend("error", `Delete game error: ${e.message || e}`);
     alert(t("delete_error"));
   }
 }
@@ -784,6 +786,7 @@ async function onSubmit(e, state) {
     }
   } catch (err) {
     console.error(err);
+    logToBackend("error", `Save game error: ${err.message || err}`);
     alert(t("save_error"));
     lockForm(false, state);
   }
@@ -808,9 +811,7 @@ function onScreenshotSelected(e, state) {
     // Логируем в файл через бэкенд
     const logMessage = `Invalid image format: ${file.name} (type: ${file.type})`;
     console.warn(logMessage);
-    if (window.eel && window.eel.log_frontend) {
-      window.eel.log_frontend("warning", logMessage);
-    }
+    logToBackend("warning", logMessage);
     
     // Сбрасываем input
     e.target.value = "";
