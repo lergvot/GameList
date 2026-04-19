@@ -256,6 +256,23 @@
                 />
               </div>
 
+              <div class="form__row">
+                <label
+                  for="developer"
+                  class="form__label"
+                  data-i18n="developer_label"
+                  >Разработчик</label
+                >
+                <input
+                  id="developer"
+                  type="text"
+                  class="form__input"
+                  placeholder="Укажите разработчика"
+                  data-i18n-placeholder="developer_placeholder"
+                />
+              </div>
+              
+
               <div class="form__row form__row--grow">
                 <label for="review" class="form__label" data-i18n="review_label"
                   >Отзыв</label
@@ -335,7 +352,9 @@
 
         <div class="view">
           <div class="view__left">
-            <div class="view__rating" id="view-rating">★ 0.0</div>
+            <div class="view__left_header">
+              <div class="view__rating" id="view-rating">★ 0.0</div>
+            </div>
             <div class="view__image-wrap">
               <div class="view__image" id="view-image"></div>
             </div>
@@ -356,6 +375,7 @@
 
             <div class="view__meta">
               <div class="view__version" id="view-version"></div>
+              <div class="view__developer" id="view-developer"></div>
               <div class="status-badge" id="view-status"></div>
             </div>
 

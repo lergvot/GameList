@@ -42,6 +42,7 @@ function renderGameCards(games, helpers) {
         id: escapeHtml(game.id),
         title: escapeHtml(game.title || ""),
         version: escapeHtml(game.version || ""),
+        developer: escapeHtml(game.developer || ""),
         review: escapeHtml(game.review || ""),
         gameLink: escapeHtml(game.game_link || ""),
         rating:
@@ -60,6 +61,7 @@ function renderGameCards(games, helpers) {
 
       const gameJson = JSON.stringify(game);
 
+      // Карточка игры в общем списке
       return `
       <article class="game-card" data-id="${escapedGame.id}" data-game-card>
         <div class="game-card__left">
@@ -96,6 +98,9 @@ function renderGameCards(games, helpers) {
           <div class="game-card__content">
             <div class="game-card__version">${t("version_label")}: ${
               escapedGame.version || "—"
+            }</div>
+            <div class="game-card__developer">${t("developer_label")}: ${
+              escapedGame.developer || "—"
             }</div>
             <div class="game-card__review">${escapedGame.review}</div>
           </div>
@@ -185,7 +190,8 @@ export function filterGames(state) {
       state.currentFilter === "all" || game.status === state.currentFilter;
     const matchesSearch =
       !state.currentSearch ||
-      (game.title || "").toLowerCase().includes(state.currentSearch);
+      (game.title || "").toLowerCase().includes(state.currentSearch) ||
+      (game.developer || "").toLowerCase().includes(state.currentSearch);
     return matchesFilter && matchesSearch;
   });
 }
@@ -279,13 +285,14 @@ export function openForm(state, game = null) {
   document.getElementById("status").value = game?.status || "planned";
   document.getElementById("review").value = game?.review || "";
   document.getElementById("game-link").value = game?.game_link || "";
+  document.getElementById("developer").value = game?.developer || "";
 
   updateStatusSelectStyle();
 
   state.unsavedScreenshotData = null;
   screenshotInput.value = "";
 
-  // ОДИН блок кода для обработки скриншота - без дублирования
+  // ОДИН блок кода для обработки скриншота
   if (game?.screenshot_data) {
     screenshotPreview.innerHTML = `<img src="${game.screenshot_data}" alt="preview" loading="lazy">`;
     screenshotPreview.classList.remove("upload-area__preview--empty");
@@ -340,6 +347,10 @@ export function showView(game) {
   document.getElementById("view-version").textContent = `${t(
     "version_label",
   )}: ${game.version || "—"}`;
+
+    document.getElementById("view-developer").textContent = `${t(
+    "developer_label",
+  )}: ${game.developer || "—"}`;
 
   const statusEl = document.getElementById("view-status");
   statusEl.textContent = getStatusText(game.status).toUpperCase();
@@ -752,6 +763,7 @@ async function onSubmit(e, state) {
     rating: parseFloat(document.getElementById("rating").value) || 0,
     review: sanitizeInput(document.getElementById("review").value.trim()),
     game_link: document.getElementById("game-link").value.trim(),
+    developer: sanitizeInput(document.getElementById("developer").value.trim()),
   };
 
   if (!payload.title) {

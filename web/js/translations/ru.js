@@ -29,6 +29,8 @@ export default {
   game_title_label: "Название",
   game_title_placeholder: "Введите название игры",
   version_label: "Версия",
+  developer_label: "Разработчик",
+  developer_placeholder: "Укажите разработчика",
   version_placeholder: "например, GOTY или 1.2.3",
   rating_label: "Оценка",
   status_label: "Статус",

@@ -60,6 +60,10 @@ def _migration_1_create_games_table(conn: sqlite3.Connection) -> None:
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
 
+def _migration_2_add_developer_column(conn: sqlite3.Connection) -> None:
+    """Добавление колонки developer в таблицу games."""
+    cursor = conn.cursor()
+    cursor.execute("ALTER TABLE games ADD COLUMN developer TEXT DEFAULT ''")
 
 # ---------------------------------------------------------------------------
 # Список миграций
@@ -71,8 +75,12 @@ MIGRATIONS: list[Migration] = [
         description="Create games table with indexes",
         up=_migration_1_create_games_table,
     ),
+    Migration(
+        version=2,
+        description="Add developer column to games table",
+        up=_migration_2_add_developer_column,
+    ),
 ]
-
 
 # ---------------------------------------------------------------------------
 # Движок миграций

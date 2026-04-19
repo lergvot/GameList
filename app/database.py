@@ -51,8 +51,8 @@ class GameRepository:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    INSERT INTO games (title, version, status, rating, review, game_link)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO games (title, version, status, rating, review, game_link, developer)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         sanitize_text(game_data.get("title", "")),
@@ -61,6 +61,7 @@ class GameRepository:
                         float(game_data.get("rating", 0)),
                         sanitize_text(game_data.get("review", "")),
                         game_data.get("game_link", ""),
+                        sanitize_text(game_data.get("developer", "")),
                     ),
                 )
                 conn.commit()
@@ -83,7 +84,7 @@ class GameRepository:
                     """
                     UPDATE games
                     SET title = ?, version = ?, status = ?, rating = ?,
-                        review = ?, game_link = ?, screenshot_path = ?,
+                        review = ?, game_link = ?, developer = ?, screenshot_path = ?,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                 """,
@@ -94,6 +95,7 @@ class GameRepository:
                         float(game_data.get("rating", 0)),
                         sanitize_text(game_data.get("review", "")),
                         game_data.get("game_link", ""),
+                        sanitize_text(game_data.get("developer", "")),
                         screenshot_path,
                         game_id,
                     ),

@@ -29,6 +29,8 @@ export default {
   game_title_label: "Title",
   game_title_placeholder: "Enter game title",
   version_label: "Version",
+  developer_label: "Developer",
+  developer_placeholder: "Specify the developer",
   version_placeholder: "e.g., GOTY or 1.2.3",
   rating_label: "Rating",
   status_label: "Status",

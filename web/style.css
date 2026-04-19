@@ -514,6 +514,11 @@ body.theme-light #theme-toggle {
   grid-template-columns: 1fr 100px 120px;
 }
 
+.form__field {
+  display: flex;
+  flex-direction: column;
+}
+
 .form__row {
   margin-bottom: var(--space-md);
 }
@@ -862,6 +867,15 @@ body.theme-light #theme-toggle {
   white-space: nowrap;
 }
 
+.game-card__developer {
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .game-card__review {
   color: var(--color-text-secondary);
   font-size: 0.85rem;
@@ -1186,6 +1200,13 @@ body.theme-light #theme-toggle {
   padding-top: var(--space-sm);
 }
 
+.view__left_header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+}
+
 .view__rating {
   font-weight: 800;
   font-size: 1.5rem;
@@ -1284,6 +1305,13 @@ body.theme-light #theme-toggle {
 }
 
 .view__version {
+  font-style: italic;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.view__developer {
   font-style: italic;
   color: var(--color-text-muted);
   font-size: 0.9rem;
