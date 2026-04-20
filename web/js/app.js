@@ -12,7 +12,7 @@ const state = {
   unsavedScreenshotData: null,
   editingGame: null,
   isSubmitting: false,
-  duplicatePopupTimeout: null,
+  titlePopupTimeout: null,
   currentSort: "added-asc",
   currentLang: "ru",
   updateInfo: null,

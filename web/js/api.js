@@ -196,6 +196,47 @@ export function findSimilarGames(gameName, allGames, currentGameId = null) {
     });
 }
 
+export function findSimilarDevelopers(searchTerm, allGames, currentGameId = null) {
+  if (!searchTerm || searchTerm.trim().length < 2) {
+    return [];
+  }
+
+  const term = searchTerm.toLowerCase().trim();
+
+  const developerMap = new Map();
+
+  allGames.forEach((game) => {
+    if (currentGameId && game.id == currentGameId) {
+      return;
+    }
+
+    const developer = game.developer;
+    if (!developer) return;
+
+    const developerLower = developer.toLowerCase();
+
+    if (developerLower.includes(term)) {
+      if (!developerMap.has(developer)) {
+        developerMap.set(developer, { developer, count: 0 });
+      }
+      developerMap.get(developer).count++;
+    }
+  });
+
+  return Array.from(developerMap.values()).sort((a, b) => {
+    const aLower = a.developer.toLowerCase();
+    const bLower = b.developer.toLowerCase();
+
+    if (aLower === term) return -1;
+    if (bLower === term) return 1;
+
+    if (aLower.startsWith(term)) return -1;
+    if (bLower.startsWith(term)) return 1;
+
+    return b.count - a.count || a.developer.localeCompare(b.developer);
+  });
+}
+
 export function getStatusText(status) {
   const statusMap = {
     playing: "status_playing_display",

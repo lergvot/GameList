@@ -6,6 +6,7 @@ import {
   formatDateTime,
   statusClassFor,
   findSimilarGames,
+  findSimilarDevelopers,
   getStatusText,
   logToBackend,
 } from "./api.js";
@@ -20,7 +21,9 @@ let gamesListEl,
   searchInput,
   statusSelect,
   titleInput,
-  duplicatePopup,
+  developerInput,
+  titlePopup,
+  developerPopup,
   sortSelect;
 
 function createUploadPlaceholder() {
@@ -274,7 +277,7 @@ export function openForm(state, game = null) {
 
   state.editingGame = game;
   lockForm(false, state);
-  hideDuplicatePopup();
+  hideTitlePopup();
 
   document.getElementById("game-id").value = game?.id || "";
   const titleInput = document.getElementById("title");
@@ -324,7 +327,7 @@ export function closeForm(state) {
 
   setTimeout(() => {
     lockForm(false, state);
-    hideDuplicatePopup();
+    hideTitlePopup();
   }, 300);
 
   updateBodyScroll();
@@ -477,15 +480,15 @@ export function updateStats(stats) {
   if (droppedEl) droppedEl.textContent = stats.dropped || 0;
 }
 
-let duplicatePopupTimeout = null;
+let titlePopupTimeout = null;
 
-export function showDuplicatePopup(state, searchText, currentGameId = null) {
-  if (!duplicatePopup || !titleInput) return;
+export function showTitlePopup(state, searchText, currentGameId = null) {
+  if (!titlePopup || !titleInput) return;
 
-  clearTimeout(duplicatePopupTimeout);
+  clearTimeout(titlePopupTimeout);
 
   if (!searchText || searchText.trim().length < 2) {
-    hideDuplicatePopup();
+    hideTitlePopup();
     return;
   }
 
@@ -496,25 +499,28 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
   );
 
   if (!similarGames || similarGames.length === 0) {
-    hideDuplicatePopup();
+    hideTitlePopup();
     return;
   }
 
-  duplicatePopup.innerHTML = "";
+  titlePopup.innerHTML = "";
 
   const list = document.createElement("ul");
-  list.className = "duplicate-popup__list";
+  list.className = "title-popup__list";
 
   similarGames.forEach((game) => {
     const listItem = document.createElement("li");
-    listItem.className = "duplicate-popup__item";
+    listItem.className = "title-popup__item";
+    listItem.style.cursor = "pointer";
+
+    const gameTitle = game.title || game.name || t("no_title");
 
     const statusClass = `status-badge--${game.status}`;
     const statusText = getStatusText(game.status).toUpperCase();
 
     const nameSpan = document.createElement("span");
-    nameSpan.className = "duplicate-popup__name";
-    nameSpan.textContent = game.title || game.name || t("no_title");
+    nameSpan.className = "title-popup__name";
+    nameSpan.textContent = gameTitle;
 
     const statusSpan = document.createElement("span");
     statusSpan.className = `status-badge ${statusClass}`;
@@ -522,38 +528,133 @@ export function showDuplicatePopup(state, searchText, currentGameId = null) {
 
     listItem.appendChild(nameSpan);
     listItem.appendChild(statusSpan);
+
+    listItem.addEventListener("click", () => {
+      if (titleInput) {
+        titleInput.value = gameTitle;
+        titleInput.focus();
+        hideTitlePopup();
+      }
+    });
+
     list.appendChild(listItem);
   });
 
-  duplicatePopup.appendChild(list);
+  titlePopup.appendChild(list);
 
   const titleRect = titleInput.getBoundingClientRect();
   const popupWidth = 320;
 
-  duplicatePopup.style.position = "fixed";
-  duplicatePopup.style.top = `${titleRect.bottom + window.scrollY + 5}px`;
-  duplicatePopup.style.left = `${titleRect.left + window.scrollX}px`;
-  duplicatePopup.style.width = `${Math.max(titleRect.width, popupWidth)}px`;
+  titlePopup.style.position = "fixed";
+  titlePopup.style.top = `${titleRect.bottom + window.scrollY + 5}px`;
+  titlePopup.style.left = `${titleRect.left + window.scrollX}px`;
+  titlePopup.style.width = `${Math.max(titleRect.width, popupWidth)}px`;
 
-  duplicatePopup.classList.add("duplicate-popup--active");
+  titlePopup.classList.add("title-popup--active");
 
-  duplicatePopupTimeout = setTimeout(() => {
+  titlePopupTimeout = setTimeout(() => {
     if (
-      !duplicatePopup.matches(":hover") &&
+      !titlePopup.matches(":hover") &&
       document.activeElement !== titleInput
     ) {
-      hideDuplicatePopup();
+      hideTitlePopup();
     }
   }, 5000);
 }
 
-export function hideDuplicatePopup() {
-  if (duplicatePopup) {
-    duplicatePopup.classList.remove("duplicate-popup--active");
-    duplicatePopup.innerHTML = "";
-    duplicatePopup.style = "";
+export function hideTitlePopup() {
+  if (titlePopup) {
+    titlePopup.classList.remove("title-popup--active");
+    titlePopup.innerHTML = "";
+    titlePopup.style = "";
   }
-  clearTimeout(duplicatePopupTimeout);
+  clearTimeout(titlePopupTimeout);
+}
+
+let developerPopupTimeout = null;
+
+export function showDeveloperPopup(state, searchText, currentGameId = null) {
+  if (!developerPopup || !developerInput) return;
+
+  clearTimeout(developerPopupTimeout);
+
+  if (!searchText || searchText.trim().length < 2) {
+    hideDeveloperPopup();
+    return;
+  }
+
+  const similarDevelopers = findSimilarDevelopers(
+    searchText,
+    state.allGames,
+    currentGameId,
+  );
+
+  if (!similarDevelopers || similarDevelopers.length === 0) {
+    hideDeveloperPopup();
+    return;
+  }
+
+  developerPopup.innerHTML = "";
+
+  const list = document.createElement("ul");
+  list.className = "developer-popup__list";
+
+  similarDevelopers.forEach((item) => {
+    const listItem = document.createElement("li");
+    listItem.className = "developer-popup__item";
+    listItem.style.cursor = "pointer";
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "developer-popup__name";
+    nameSpan.textContent = item.developer;
+
+    const countSpan = document.createElement("span");
+    countSpan.className = "developer-popup__count";
+    countSpan.textContent = item.count;
+
+    listItem.appendChild(nameSpan);
+    listItem.appendChild(countSpan);
+
+    listItem.addEventListener("click", () => {
+      if (developerInput) {
+        developerInput.value = item.developer;
+        developerInput.focus();
+        hideDeveloperPopup();
+      }
+    });
+
+    list.appendChild(listItem);
+  });
+
+  developerPopup.appendChild(list);
+
+  const inputRect = developerInput.getBoundingClientRect();
+  const popupWidth = 280;
+
+  developerPopup.style.position = "fixed";
+  developerPopup.style.top = `${inputRect.bottom + window.scrollY + 5}px`;
+  developerPopup.style.left = `${inputRect.left + window.scrollX}px`;
+  developerPopup.style.width = `${Math.max(inputRect.width, popupWidth)}px`;
+
+  developerPopup.classList.add("developer-popup--active");
+
+  developerPopupTimeout = setTimeout(() => {
+    if (
+      !developerPopup.matches(":hover") &&
+      document.activeElement !== developerInput
+    ) {
+      hideDeveloperPopup();
+    }
+  }, 5000);
+}
+
+export function hideDeveloperPopup() {
+  if (developerPopup) {
+    developerPopup.classList.remove("developer-popup--active");
+    developerPopup.innerHTML = "";
+    developerPopup.style = "";
+  }
+  clearTimeout(developerPopupTimeout);
 }
 
 export function setupEventHandlers(state) {
@@ -566,7 +667,9 @@ export function setupEventHandlers(state) {
   searchInput = document.getElementById("search");
   statusSelect = document.getElementById("status");
   titleInput = document.getElementById("title");
-  duplicatePopup = document.getElementById("duplicate-popup");
+  developerInput = document.getElementById("developer");
+  titlePopup = document.getElementById("title-popup");
+  developerPopup = document.getElementById("developer-popup");
   sortSelect = document.getElementById("sort-select");
 
   document
@@ -673,37 +776,76 @@ export function setupEventHandlers(state) {
       clearTimeout(inputTimeout);
       inputTimeout = setTimeout(() => {
         const gameId = document.getElementById("game-id").value;
-        showDuplicatePopup(state, e.target.value, gameId || null);
+        showTitlePopup(state, e.target.value, gameId || null);
       }, 300);
     });
 
     titleInput.addEventListener("focus", (e) => {
       const gameId = document.getElementById("game-id").value;
-      showDuplicatePopup(state, e.target.value, gameId || null);
+      showTitlePopup(state, e.target.value, gameId || null);
     });
 
     titleInput.addEventListener("blur", () => {
       setTimeout(() => {
-        if (duplicatePopup && !duplicatePopup.matches(":hover")) {
-          hideDuplicatePopup();
+        if (titlePopup && !titlePopup.matches(":hover")) {
+          hideTitlePopup();
         }
       }, 200);
     });
 
     titleInput.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        hideDuplicatePopup();
+        hideTitlePopup();
+      }
+    });
+  }
+
+  if (developerInput) {
+    let developerInputTimeout;
+
+    developerInput.addEventListener("input", (e) => {
+      clearTimeout(developerInputTimeout);
+      developerInputTimeout = setTimeout(() => {
+        const gameId = document.getElementById("game-id").value;
+        showDeveloperPopup(state, e.target.value, gameId || null);
+      }, 300);
+    });
+
+    developerInput.addEventListener("focus", (e) => {
+      const gameId = document.getElementById("game-id").value;
+      showDeveloperPopup(state, e.target.value, gameId || null);
+    });
+
+    developerInput.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (developerPopup && !developerPopup.matches(":hover")) {
+          hideDeveloperPopup();
+        }
+      }, 200);
+    });
+
+    developerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        hideDeveloperPopup();
       }
     });
   }
 
   document.addEventListener("click", (e) => {
     if (
-      duplicatePopup &&
-      duplicatePopup.classList.contains("duplicate-popup--active")
+      titlePopup &&
+      titlePopup.classList.contains("title-popup--active")
     ) {
-      if (!duplicatePopup.contains(e.target) && e.target !== titleInput) {
-        hideDuplicatePopup();
+      if (!titlePopup.contains(e.target) && e.target !== titleInput) {
+        hideTitlePopup();
+      }
+    }
+    if (
+      developerPopup &&
+      developerPopup.classList.contains("developer-popup--active")
+    ) {
+      if (!developerPopup.contains(e.target) && e.target !== developerInput) {
+        hideDeveloperPopup();
       }
     }
   });
@@ -941,8 +1083,8 @@ export default {
   openForm,
   openConfirmModal,
   updateStats,
-  showDuplicatePopup,
-  hideDuplicatePopup,
+  showTitlePopup,
+  hideTitlePopup,
   filterAndDisplay,
   showToast,
   showUpdateModal,
