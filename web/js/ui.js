@@ -583,8 +583,22 @@ export function showDeveloperPopup(state, searchText, currentGameId = null) {
     return;
   }
 
+  const lastCommaIndex = searchText.lastIndexOf(",");
+  const searchTerm = lastCommaIndex >= 0
+    ? searchText.slice(lastCommaIndex + 1).trim()
+    : searchText;
+
+  if (!searchTerm || searchTerm.length < 2) {
+    hideDeveloperPopup();
+    return;
+  }
+
+  const prefix = lastCommaIndex >= 0
+    ? searchText.slice(0, lastCommaIndex + 1).trim() + " "
+    : "";
+
   const similarDevelopers = findSimilarDevelopers(
-    searchText,
+    searchTerm,
     state.allGames,
     currentGameId,
   );
@@ -617,7 +631,7 @@ export function showDeveloperPopup(state, searchText, currentGameId = null) {
 
     listItem.addEventListener("click", () => {
       if (developerInput) {
-        developerInput.value = item.developer;
+        developerInput.value = prefix + item.developer;
         developerInput.focus();
         hideDeveloperPopup();
       }
