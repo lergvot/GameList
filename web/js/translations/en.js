@@ -38,6 +38,7 @@ export default {
   game_link_placeholder: "https://...",
   review_label: "Review",
   review_placeholder: "Briefly about impressions",
+  screenshot_label: "Screenshot",
   upload_image_placeholder: "Upload image",
 
   status_playing: "Playing",

@@ -38,6 +38,7 @@ export default {
   game_link_placeholder: "https://...",
   review_label: "Отзыв",
   review_placeholder: "Коротко о впечатлениях",
+  screenshot_label: "Изображение",
   upload_image_placeholder: "Загрузить изображение",
 
   status_playing: "Играю",

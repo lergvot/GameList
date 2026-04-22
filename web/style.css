@@ -517,10 +517,13 @@ body.theme-light #theme-toggle {
 .form__field {
   display: flex;
   flex-direction: column;
+  margin-top: 0;
 }
 
 .form__row {
-  margin-bottom: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
 }
 
 .form__row--grow {
@@ -1088,26 +1091,85 @@ body.theme-light #theme-toggle {
    14. COMPONENT: ADD/EDIT FORM
    ========================================================================== */
 
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  height: 100%;
+}
+
 .form__content {
   display: grid;
   grid-template-columns: 1fr 260px;
   gap: var(--space-lg);
-  height: 360px;
+  height: auto;
+  flex: 1;
+}
+
+.form__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form__head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.form__head-row .form__row {
+  flex: 1;
+}
+
+.form__head-row .form__field {
+  flex-shrink: 0;
+  flex: 0 0 100px;
 }
 
 .form__fields {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: var(--space-xs);
+}
+
+.form__row--inline {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.form__row--inline .form__field:nth-child(1) {
+  flex: 1;
+}
+
+.form__row--inline .form__field:nth-child(2) {
+  flex: 2;
+}
+
+.form__row--inline .form__field:nth-child(3) {
+  flex: 0 0 100px;
 }
 
 .form__upload {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-md);
   height: 100%;
-  justify-content: space-between;
+  justify-content: flex-start;
+}
+
+.form__upload > * {
+  margin-bottom: var(--space-xs);
+}
+
+.form__upload > :last-child {
+  margin-bottom: 0;
+}
+
+#remove-screenshot {
+  min-width: max-content;
+  width: fit-content;
+  align-self: center;
 }
 
 /* Область загрузки изображения */
@@ -1115,7 +1177,7 @@ body.theme-light #theme-toggle {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   cursor: pointer;
   transition: all 0.15s ease;
   width: 100%;
@@ -1166,11 +1228,11 @@ body.theme-light #theme-toggle {
 .form__actions {
     display: flex;
     gap: var(--space-md);
-    width: 100%;
-    margin-top: auto;
-    flex-direction: row-reverse;
-    align-items: center;
-    justify-content: flex-start;
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
 }
 
 .update-info__hint {
@@ -1252,7 +1314,6 @@ body.theme-light #theme-toggle {
 .view__header {
   display: flex;
   align-items: center;
-  margin-bottom: var(--space-sm);
   gap: var(--space-sm);
   min-width: 0;
   padding-right: 20px;
@@ -1325,7 +1386,6 @@ body.theme-light #theme-toggle {
 
 .view__review {
   height: 140px;
-  margin: var(--space-xs) 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
