@@ -91,7 +91,7 @@ export default {
 
   no_title: "Без названия",
 
-  version_label: "Версия ",
+  version_label: "Версия",
 
   // Update functionality
   update_available_title: "Доступно обновление",

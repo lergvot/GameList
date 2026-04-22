@@ -852,7 +852,6 @@ body.theme-light #theme-toggle {
   grid-row: 2;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
   min-width: 0;
   height: 100%;
   overflow: hidden;
@@ -885,7 +884,7 @@ body.theme-light #theme-toggle {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: var(--space-xs);
+  margin-top: var(--space-sm);
 }
 
 /* Правая колонка (статус) */
@@ -1187,7 +1186,7 @@ body.theme-light #theme-toggle {
 .view {
   display: grid;
   grid-template-columns: 400px 1fr;
-  gap: var(--space-xl);
+  gap: var(--space-lg);
   align-items: start;
   margin-top: 0;
 }
@@ -1204,7 +1203,6 @@ body.theme-light #theme-toggle {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding-top: var(--space-sm);
 }
 
 .view__rating {
@@ -1246,18 +1244,18 @@ body.theme-light #theme-toggle {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   padding-top: var(--space-sm);
   min-width: 0;
 }
 
 .view__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: var(--space-sm);
   gap: var(--space-sm);
   min-width: 0;
-  padding-right: 40px;
+  padding-right: 20px;
 }
 
 .view__title {
@@ -1299,22 +1297,29 @@ body.theme-light #theme-toggle {
 
 .view__meta {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-lg);
+  gap: var(--space-md);
+}
+
+.view__meta_left {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .view__version {
   font-style: italic;
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-align: right;
 }
 
 .view__developer {
   font-style: italic;
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-align: right;
 }
 
