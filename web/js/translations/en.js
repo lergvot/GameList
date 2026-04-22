@@ -21,17 +21,17 @@ export default {
   sort_by_date_added: "By date added",
   sort_by_date_updated: "By date updated",
 
-  search_placeholder: "Search by title...",
+  search_placeholder: "Title or developer...",
 
   add_game_modal_title: "Add Game",
   edit_game_modal_title: "Edit Game",
 
   game_title_label: "Title",
-  game_title_placeholder: "Enter game title",
+  game_title_placeholder: "Game title",
   version_label: "Version",
   developer_label: "Developer",
-  developer_placeholder: "Specify the developer",
-  version_placeholder: "e.g., GOTY or 1.2.3",
+  developer_placeholder: "You can specify several separated by comma",
+  version_placeholder: "For example, GOTY or 1.2.3",
   rating_label: "Rating",
   status_label: "Status",
   game_link_label: "Game link",

@@ -7,7 +7,7 @@ import re
 
 from PIL import Image
 
-from app.database import *
+from app.database import GameRepository
 from app.logger import get_logger
 from config import DATA_DIR, IMAGE_MAX_WIDTH, IMAGE_QUALITY, SCREENSHOTS_DIR
 

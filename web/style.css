@@ -1116,7 +1116,7 @@ body.theme-light #theme-toggle {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: var(--space-xs);
+  gap: var(--space-md);
 }
 
 .form__head-row .form__row {
@@ -1125,7 +1125,6 @@ body.theme-light #theme-toggle {
 
 .form__head-row .form__field {
   flex-shrink: 0;
-  flex: 0 0 100px;
 }
 
 .form__fields {
@@ -1136,7 +1135,7 @@ body.theme-light #theme-toggle {
 
 .form__row--inline {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
 .form__row--inline .form__field:nth-child(1) {
@@ -1144,11 +1143,11 @@ body.theme-light #theme-toggle {
 }
 
 .form__row--inline .form__field:nth-child(2) {
-  flex: 2;
+  flex: 0 0 60px;
 }
 
 .form__row--inline .form__field:nth-child(3) {
-  flex: 0 0 100px;
+  flex: 2;
 }
 
 .form__upload {

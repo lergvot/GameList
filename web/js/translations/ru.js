@@ -21,17 +21,17 @@ export default {
   sort_by_date_added: "По дате добавления",
   sort_by_date_updated: "По дате обновления",
 
-  search_placeholder: "Поиск по названию...",
+  search_placeholder: "Название или разработчик...",
 
   add_game_modal_title: "Добавить игру",
   edit_game_modal_title: "Редактировать игру",
 
   game_title_label: "Название",
-  game_title_placeholder: "Введите название игры",
+  game_title_placeholder: "Название игры",
   version_label: "Версия",
   developer_label: "Разработчик",
-  developer_placeholder: "Укажите разработчика",
-  version_placeholder: "например, GOTY или 1.2.3",
+  developer_placeholder: "Можно указать несколько через запятую",
+  version_placeholder: "Например, GOTY или 1.2.3",
   rating_label: "Оценка",
   status_label: "Статус",
   game_link_label: "Ссылка на игру",
