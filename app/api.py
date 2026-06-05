@@ -41,6 +41,10 @@ def load_games():
 
         for game in games:
             game["rating"] = float(game["rating"]) if game["rating"] else 0.0
+            
+            # developers уже загружены из БД как список
+            if not isinstance(game.get("developers"), list):
+                game["developers"] = []
 
             # Конвертируем скриншот в base64 если файл существует
             screenshot_path = game.get("screenshot_path")

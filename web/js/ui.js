@@ -45,7 +45,7 @@ function renderGameCards(games, helpers) {
         id: escapeHtml(game.id),
         title: escapeHtml(game.title || ""),
         version: escapeHtml(game.version || ""),
-        developer: escapeHtml(game.developer || ""),
+        developer: escapeHtml(Array.isArray(game.developers) ? game.developers.join(", ") : ""),
         review: escapeHtml(game.review || ""),
         gameLink: escapeHtml(game.game_link || ""),
         rating:
@@ -191,10 +191,16 @@ export function filterGames(state) {
   return state.allGames.filter((game) => {
     const matchesFilter =
       state.currentFilter === "all" || game.status === state.currentFilter;
+    
+    // Объединяем массив разработчиков в строку для поиска
+    const developersStr = Array.isArray(game.developers) 
+      ? game.developers.join(", ") 
+      : "";
+    
     const matchesSearch =
       !state.currentSearch ||
       (game.title || "").toLowerCase().includes(state.currentSearch) ||
-      (game.developer || "").toLowerCase().includes(state.currentSearch);
+      developersStr.toLowerCase().includes(state.currentSearch);
     return matchesFilter && matchesSearch;
   });
 }
@@ -288,7 +294,7 @@ export function openForm(state, game = null) {
   document.getElementById("status").value = game?.status || "planned";
   document.getElementById("review").value = game?.review || "";
   document.getElementById("game-link").value = game?.game_link || "";
-  document.getElementById("developer").value = game?.developer || "";
+  document.getElementById("developer").value = Array.isArray(game?.developers) ? game.developers.join(", ") : "";
 
   updateStatusSelectStyle();
 
@@ -353,7 +359,7 @@ export function showView(game) {
 
     document.getElementById("view-developer").textContent = `${t(
     "developer_label",
-  )}: ${game.developer || "—"}`;
+  )}: ${Array.isArray(game.developers) ? game.developers.join(", ") : game.developer || "—"}`;
 
   const statusEl = document.getElementById("view-status");
   statusEl.textContent = getStatusText(game.status).toUpperCase();
@@ -919,7 +925,7 @@ async function onSubmit(e, state) {
     rating: parseFloat(document.getElementById("rating").value) || 0,
     review: sanitizeInput(document.getElementById("review").value.trim()),
     game_link: document.getElementById("game-link").value.trim(),
-    developer: sanitizeInput(document.getElementById("developer").value.trim()),
+    developers: sanitizeInput(document.getElementById("developer").value.trim()),
   };
 
   if (!payload.title) {

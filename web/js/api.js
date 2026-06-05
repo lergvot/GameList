@@ -210,17 +210,21 @@ export function findSimilarDevelopers(searchTerm, allGames, currentGameId = null
       return;
     }
 
-    const developer = game.developer;
-    if (!developer) return;
+    // Преобразуем developers (массив) в строки
+    const developers = Array.isArray(game.developers) ? game.developers : [];
+    
+    developers.forEach((developer) => {
+      if (!developer) return;
+      
+      const developerLower = developer.toLowerCase();
 
-    const developerLower = developer.toLowerCase();
-
-    if (developerLower.includes(term)) {
-      if (!developerMap.has(developer)) {
-        developerMap.set(developer, { developer, count: 0 });
+      if (developerLower.includes(term)) {
+        if (!developerMap.has(developer)) {
+          developerMap.set(developer, { developer, count: 0 });
+        }
+        developerMap.get(developer).count++;
       }
-      developerMap.get(developer).count++;
-    }
+    });
   });
 
   return Array.from(developerMap.values()).sort((a, b) => {

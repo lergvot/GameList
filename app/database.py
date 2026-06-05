@@ -26,6 +26,8 @@ class GameRepository:
 
     def get_all_games(self) -> list[dict]:
         """Получает все игры с сортировкой по статусу и дате"""
+        import json
+        
         with self.db as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -42,16 +44,33 @@ class GameRepository:
                     created_at DESC
             """
             )
-            return [dict(row) for row in cursor.fetchall()]
+            games = [dict(row) for row in cursor.fetchall()]
+            
+            # Парсим developer_ids из JSON в список имен
+            for game in games:
+                developer_ids = json.loads(game.get("developer_ids", "[]"))
+                game["developers"] = self._get_developers_by_ids(conn, developer_ids)
+            
+            return games
 
     def add_game(self, game_data: dict) -> Optional[int]:
         """Добавляет новую игру, возвращает ID или None при ошибке"""
+        import json
+        
         try:
+            developers = game_data.pop("developers", [])
+            if isinstance(developers, str):
+                developers = [d.strip() for d in developers.split(",") if d.strip()]
+            
             with self.db as conn:
                 cursor = conn.cursor()
+                
+                # Получаем или создаем ID разработчиков
+                developer_ids = self._get_or_create_developer_ids(cursor, developers)
+                
                 cursor.execute(
                     """
-                    INSERT INTO games (title, version, status, rating, review, game_link, developer)
+                    INSERT INTO games (title, version, status, rating, review, game_link, developer_ids)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -61,7 +80,7 @@ class GameRepository:
                         float(game_data.get("rating", 0)),
                         sanitize_text(game_data.get("review", "")),
                         game_data.get("game_link", ""),
-                        sanitize_text(game_data.get("developer", "")),
+                        json.dumps(developer_ids),
                     ),
                 )
                 conn.commit()
@@ -77,14 +96,24 @@ class GameRepository:
         self, game_id: int, game_data: dict, screenshot_path: Optional[str] = None
     ) -> bool:
         """Обновляет данные игры"""
+        import json
+        
         try:
+            developers = game_data.pop("developers", [])
+            if isinstance(developers, str):
+                developers = [d.strip() for d in developers.split(",") if d.strip()]
+            
             with self.db as conn:
                 cursor = conn.cursor()
+                
+                # Получаем или создаем ID разработчиков
+                developer_ids = self._get_or_create_developer_ids(cursor, developers)
+                
                 cursor.execute(
                     """
                     UPDATE games
                     SET title = ?, version = ?, status = ?, rating = ?,
-                        review = ?, game_link = ?, developer = ?, screenshot_path = ?,
+                        review = ?, game_link = ?, developer_ids = ?, screenshot_path = ?,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?
                 """,
@@ -95,7 +124,7 @@ class GameRepository:
                         float(game_data.get("rating", 0)),
                         sanitize_text(game_data.get("review", "")),
                         game_data.get("game_link", ""),
-                        sanitize_text(game_data.get("developer", "")),
+                        json.dumps(developer_ids),
                         screenshot_path,
                         game_id,
                     ),
@@ -113,6 +142,57 @@ class GameRepository:
             cursor.execute("DELETE FROM games WHERE id = ?", (game_id,))
             conn.commit()
             return cursor.rowcount > 0
+
+    def _get_or_create_developer_ids(self, cursor: sqlite3.Cursor, developer_names: list) -> list:
+        """Получает или создает ID разработчиков (case-insensitive для ASCII)"""
+        developer_ids = []
+        for dev_name in developer_names:
+            dev_name = sanitize_text(dev_name.strip())
+            if dev_name:
+                # Ищем разработчика case-insensitive
+                cursor.execute(
+                    "SELECT id FROM developers WHERE LOWER(name) = LOWER(?)",
+                    (dev_name,)
+                )
+                result = cursor.fetchone()
+                
+                if result:
+                    # Разработчик существует
+                    dev_id = result[0]
+                    if dev_id not in developer_ids:
+                        developer_ids.append(dev_id)
+                else:
+                    # Создаем нового разработчика
+                    try:
+                        cursor.execute(
+                            "INSERT INTO developers (name) VALUES (?)",
+                            (dev_name,)
+                        )
+                        developer_ids.append(cursor.lastrowid)
+                    except sqlite3.IntegrityError:
+                        # Разработчик уже существует - пересоздаем поиск
+                        cursor.execute(
+                            "SELECT id FROM developers WHERE LOWER(name) = LOWER(?)",
+                            (dev_name,)
+                        )
+                        result = cursor.fetchone()
+                        if result:
+                            dev_id = result[0]
+                            if dev_id not in developer_ids:
+                                developer_ids.append(dev_id)
+        return developer_ids
+
+    def _get_developers_by_ids(self, conn: sqlite3.Connection, developer_ids: list) -> list:
+        """Получает имена разработчиков по их ID"""
+        if not developer_ids:
+            return []
+        cursor = conn.cursor()
+        placeholders = ",".join("?" * len(developer_ids))
+        cursor.execute(
+            f"SELECT name FROM developers WHERE id IN ({placeholders}) ORDER BY name",
+            developer_ids
+        )
+        return [row[0] for row in cursor.fetchall()]
 
     def get_game_by_id(self, game_id: int) -> Optional[dict]:
         """Получает игру по ID"""

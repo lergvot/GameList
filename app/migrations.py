@@ -65,6 +65,96 @@ def _migration_2_add_developer_column(conn: sqlite3.Connection) -> None:
     cursor = conn.cursor()
     cursor.execute("ALTER TABLE games ADD COLUMN developer TEXT DEFAULT ''")
 
+
+def _migration_3_normalize_developers(conn: sqlite3.Connection) -> None:
+    """
+    Создает таблицу developers и добавляет поле developer_ids в games.
+    Распарсивает существующие разработчиков (через запятую) в developer_ids как JSON.
+    """
+    import json
+    
+    cursor = conn.cursor()
+    
+    # Создаем таблицу developers с case-insensitive UNIQUE (работает для ASCII/латиницы)
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS developers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """
+    )
+    
+    # Добавляем поле developer_ids в games (JSON со списком ID)
+    cursor.execute("ALTER TABLE games ADD COLUMN developer_ids TEXT DEFAULT '[]'")
+    
+    # Мигрируем существующих разработчиков
+    cursor.execute("SELECT id, developer FROM games WHERE developer != ''")
+    rows = cursor.fetchall()
+    
+    for game_id, developer_str in rows:
+        # Парсим разработчиков (отделены запятыми и пробелами)
+        developer_names = [d.strip() for d in developer_str.split(",") if d.strip()]
+        developer_ids = []
+        
+        for dev_name in developer_names:
+            # Вставляем разработчика если его еще нет
+            try:
+                cursor.execute(
+                    "INSERT INTO developers (name) VALUES (?)",
+                    (dev_name,)
+                )
+                developer_ids.append(cursor.lastrowid)
+            except sqlite3.IntegrityError:
+                # Разработчик уже существует
+                cursor.execute("SELECT id FROM developers WHERE name = ?", (dev_name,))
+                result = cursor.fetchone()
+                if result:
+                    dev_id = result[0]
+                    if dev_id not in developer_ids:
+                        developer_ids.append(dev_id)
+        
+        # Сохраняем список ID как JSON
+        cursor.execute(
+            "UPDATE games SET developer_ids = ? WHERE id = ?",
+            (json.dumps(developer_ids), game_id)
+        )
+    
+    # Удаляем старую колонку developer из games
+    cursor.execute(
+        """
+        CREATE TABLE games_new (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            version TEXT DEFAULT '',
+            status TEXT DEFAULT 'planned',
+            rating REAL DEFAULT 0,
+            review TEXT DEFAULT '',
+            game_link TEXT DEFAULT '',
+            screenshot_path TEXT DEFAULT '',
+            developer_ids TEXT DEFAULT '[]',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """
+    )
+    
+    cursor.execute(
+        """
+        INSERT INTO games_new 
+        SELECT id, title, version, status, rating, review, game_link, screenshot_path, developer_ids, created_at, updated_at
+        FROM games
+    """
+    )
+    
+    cursor.execute("DROP TABLE games")
+    cursor.execute("ALTER TABLE games_new RENAME TO games")
+    
+    # Пересоздаем индексы
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_status ON games(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_title ON games(title)")
+
 # ---------------------------------------------------------------------------
 # Список миграций
 # ---------------------------------------------------------------------------
@@ -79,6 +169,11 @@ MIGRATIONS: list[Migration] = [
         version=2,
         description="Add developer column to games table",
         up=_migration_2_add_developer_column,
+    ),
+    Migration(
+        version=3,
+        description="Normalize developers into separate table with M:N relationship",
+        up=_migration_3_normalize_developers,
     ),
 ]
 
